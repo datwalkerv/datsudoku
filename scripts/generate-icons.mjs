@@ -1,5 +1,6 @@
-// Renders public/icons/icon.svg into the PNG sizes used by the manifest and iOS.
-// Run: node scripts/generate-icons.mjs
+// Renders public/icons/icon.svg (full-bleed; iOS and Android round the corners)
+// into the PNG sizes used by the manifest and iOS. The browser favicon is
+// app/icon.svg. Run: pnpm icons
 import sharp from "sharp";
 import { readFile } from "node:fs/promises";
 
@@ -10,9 +11,11 @@ for (const [name, size] of [
   ["icon-192.png", 192],
   ["icon-512.png", 512],
   ["maskable-512.png", 512],
-  ["apple-touch-icon.png", 180],
-  ["favicon-32.png", 32],
 ]) {
-  await sharp(svg, { density: 384 }).resize(size, size).flatten({ background: "#FAF9F6" }).png().toFile(out(name));
+  await sharp(svg, { density: 384 }).resize(size, size).png().toFile(out(name));
   console.log("wrote", name);
 }
+
+// iOS picks up app/apple-icon.png through Next's file conventions.
+await sharp(svg, { density: 384 }).resize(180, 180).png().toFile(new URL("../app/apple-icon.png", import.meta.url).pathname);
+console.log("wrote app/apple-icon.png");

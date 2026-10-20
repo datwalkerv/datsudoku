@@ -20,13 +20,7 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   formatDetection: { telephone: false },
-  icons: {
-    icon: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
-  },
+  // Icons come from app/icon.svg (favicon) and app/apple-icon.png (iOS).
 };
 
 export const viewport: Viewport = {

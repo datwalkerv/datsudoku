@@ -1,14 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#FAF9F6"/>
-  <g transform="translate(112 112)">
-    <rect x="0" y="0" width="88" height="88" rx="18" fill="#E7E3DA"/>
-    <rect x="100" y="0" width="88" height="88" rx="18" fill="#E7E3DA"/>
-    <rect x="200" y="0" width="88" height="88" rx="18" fill="#1F1E1C"/>
-    <rect x="0" y="100" width="88" height="88" rx="18" fill="#E7E3DA"/>
-    <rect x="100" y="100" width="88" height="88" rx="18" fill="#2F6BD8"/>
-    <rect x="200" y="100" width="88" height="88" rx="18" fill="#E7E3DA"/>
-    <rect x="0" y="200" width="88" height="88" rx="18" fill="#1F1E1C"/>
-    <rect x="100" y="200" width="88" height="88" rx="18" fill="#E7E3DA"/>
-    <rect x="200" y="200" width="88" height="88" rx="18" fill="#E7E3DA"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f80ff"/>
+      <stop offset="0.55" stop-color="#1a5cf0"/>
+      <stop offset="1" stop-color="#5b2fd6"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0.25" cy="0.1" r="0.8">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#shine)"/>
+  <!-- A 3×3 Sudoku box: the diagonal is solved, the rest waits. -->
+  <g transform="translate(118 118)" fill="#ffffff">
+    <rect x="0" y="0" width="80" height="80" rx="22"/>
+    <rect x="98" y="0" width="80" height="80" rx="22" fill-opacity="0.28"/>
+    <rect x="196" y="0" width="80" height="80" rx="22" fill-opacity="0.28"/>
+    <rect x="0" y="98" width="80" height="80" rx="22" fill-opacity="0.28"/>
+    <rect x="98" y="98" width="80" height="80" rx="22"/>
+    <rect x="196" y="98" width="80" height="80" rx="22" fill-opacity="0.28"/>
+    <rect x="0" y="196" width="80" height="80" rx="22" fill-opacity="0.28"/>
+    <rect x="98" y="196" width="80" height="80" rx="22" fill-opacity="0.28"/>
+    <rect x="196" y="196" width="80" height="80" rx="22"/>
   </g>
 </svg>

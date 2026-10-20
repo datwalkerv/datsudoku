@@ -1,83 +1,82 @@
-# Sudoku
+<div align="center">
 
-A calm, Apple‑inspired Sudoku PWA: Classic play, a shared Daily Challenge and private multiplayer rooms. Built with Next.js 16 (App Router, Cache Components), MongoDB Atlas, Better Auth and Serwist. Runs on Vercel Hobby with no persistent server.
+<img src="./app/icon.svg" width="10%" alt="datsudoku" style="border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);" />
 
-## Features
+# datsudoku
 
-- **Classic** – Easy, Medium, Hard (YouDoSudoku) and Expert (verified internal generator). Notes, undo/redo, hints, mistake checking, a timer with pause, and automatic saving.
-- **Daily Challenge** – one puzzle per UTC date for everyone, one attempt, streaks, and a server‑timed leaderboard.
-- **Multiplayer** – private rooms joined by code or link. Everyone gets the same seeded puzzle; times are measured by the server. Rooms show live progress (polling), results and rematches.
-- **Leaderboards** – personal bests by mode and difficulty, plus daily and room boards. Deterministic tie‑breaking and cursor pagination.
-- **Accounts** – email/password and Google via Better Auth. Guests play right away as anonymous users, and their games, results and streak move to the account when they sign up or sign in.
-- **PWA** – installable on iOS (Share → Add to Home Screen), standalone display, safe areas, offline play for games opened before, local‑first IndexedDB storage with server sync.
+**Nine by nine. One answer.**
 
-## Architecture
+A fast, beautiful Sudoku you can play anywhere, race friends on, and install on your iPhone, even offline.
 
-| Area | Where |
-|---|---|
-| Sudoku engine (pure TS: board, solver, generator, rater, engine, history) | `lib/sudoku/*` |
-| YouDoSudoku client and puzzle acquisition (validate → verify unique → store) | `lib/sudoku/api.ts`, `lib/puzzles/*` |
-| MongoDB connection, collections and indexes | `lib/db/*` |
-| Game, daily, room, leaderboard and stats services | `lib/games`, `lib/daily`, `lib/multiplayer`, `lib/leaderboard`, `lib/stats` |
-| Better Auth (server, client) | `lib/auth.ts`, `lib/auth-client.ts`, `app/api/auth/[...all]` |
-| Route handlers | `app/api/*` |
-| Local‑first storage and sync | `lib/local/*`, `lib/client/sync.ts` |
-| Service worker | `app/sw.ts`, `app/serwist/[path]/route.ts` |
+</div>
 
-**Integrity rules** (`lib/games/rules.ts`):
-- The solution is never sent to the browser.
-- Completions are verified on the server against the stored solution. The client's move log is replayed to recompute mistakes and hints.
-- Only one result is stored per game, so repeated submissions return the same result.
-- Ranked times in every mode use server timestamps (start → verified completion). The browser's timer is only for display, and pausing doesn't stop the ranked clock.
-- Only registered, hint‑free games are ranked.
+## ✨ Key Features
 
-**Sync** (`lib/client/sync.ts`):
-- Every change is written to IndexedDB immediately.
-- Saves to the server are throttled and versioned (optimistic concurrency).
-- On a version conflict, a completed server game always wins. Otherwise the copy with more play time wins, and the losing copy is kept as a snapshot.
-- Saves that fail transiently are retried with backoff and sent when the device is back online.
+- **🧩 Classic Play**: Easy, Medium and Hard puzzles from [YouDoSudoku](https://youdosudoku.com), plus Expert puzzles generated in-house. Every puzzle is checked for exactly one solution before you see it.
+- **📅 Daily Challenge**: One shared puzzle for everyone each UTC day. You get one attempt, a streak to keep alive, and a daily leaderboard.
+- **👥 Private Rooms**: Create a room and share its code or link. Everyone solves the exact same seeded puzzle, live progress shows up as friends play, and the host can start a rematch with a fresh puzzle.
+- **✏️ Pencil Notes**: Tap Notes and a second row of numbers appears. The blue row adds notes, the normal row places numbers. Placed numbers clean up related notes automatically.
+- **↩️ Undo, Hints & Mistakes**: Unlimited undo and redo, hints that fix a wrong entry first, mistake tracking and a pausable timer.
+- **🏆 Leaderboards**: Personal bests by mode and difficulty, daily rankings and room standings, with fair tie-breaking and paging.
+- **🙋 Play Instantly**: No sign-up needed to start. Create an account later and your games, results and streak come with you.
+- **📱 Installs Like an App**: Add it to your iPhone Home Screen for a full-screen app with safe-area support. Games you've opened keep working offline and sync when you're back.
+- **🌗 Premium UI**: Bold type, flat 24 px cards, a single blue accent, and a soft glow on true black. Light, dark or system theme.
 
-## Local development
 
-Requirements: Node 24+, pnpm.
+## 🛠️ Technology Stack
 
-```bash
-pnpm install
-cp .env.example .env.local   # fill in the values
-pnpm dev
-```
+- **Framework**: [Next.js 16 (App Router, Cache Components)](https://nextjs.org/)
+- **Runtime & View Library**: [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with [shadcn/ui](https://ui.shadcn.com/) components
+- **Motion**: [Motion](https://motion.dev/) springs
+- **Type Safety**: [TypeScript](https://www.typescriptlang.org/) and [Zod](https://zod.dev/)
+- **Authentication**: [Better Auth](https://www.better-auth.com/) (email & password, optional Google, anonymous guests)
+- **Database**: [MongoDB Atlas](https://www.mongodb.com/atlas)
+- **Puzzles**: [YouDoSudoku API](https://youdosudoku.com) and a seeded in-house generator and solver
+- **Offline**: [Serwist](https://serwist.pages.dev/) service worker and IndexedDB via [idb](https://github.com/jakearchibald/idb)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Fonts**: [Inter Tight](https://fonts.google.com/specimen/Inter+Tight), self-hosted
+- **Testing**: [Vitest](https://vitest.dev/) and [Playwright](https://playwright.dev/)
+- **Hosting**: [Vercel](https://vercel.com/)
 
-MongoDB must be a replica set, because completions and guest linking use transactions. Atlas clusters already are. For a local database, run `mongod --replSet rs0` once, then `rs.initiate()`.
+## ⚖️ Fair Play & Privacy
 
-Without `YOUDOSUDOKU_API_KEY`, puzzles come from the internal generator. Without the Google variables, the Google button is hidden.
+### Server-Verified Results
+- The stored solution is never sent to the browser. The server checks every finished board against it.
+- The server replays your move history to count mistakes and hints itself. A move list that doesn't match the board isn't ranked.
+- Ranked times use the server's clock, from the moment a game is created until the server verifies it. Pausing hides the board but doesn't stop that clock.
+- Each game records exactly one result, so sending the same completion again returns the original result.
+- Only registered players with hint-free games are ranked. Times faster than one second per empty cell are flagged.
+- Ties go to fewer mistakes, then to whoever finished first.
 
-## Tests
+### Puzzles
+- Every external puzzle is validated, normalized and checked for a unique solution before it's stored. Puzzles that fail are recorded as rejected and never served.
+- Each puzzle is saved to MongoDB before anyone plays it. A room's seed always maps to the same stored puzzle.
+- The first request each UTC day assigns the Daily puzzle. A unique index makes simultaneous first requests agree on one puzzle, so no cron job is needed.
+- If the puzzle service is down, a verified in-house puzzle is used instead.
 
-```bash
-pnpm test        # unit and integration (Vitest; in-memory MongoDB replica set)
-pnpm build && pnpm test:e2e   # end-to-end (Playwright: Chromium and iPhone WebKit)
-pnpm typecheck && pnpm lint
-```
+### Offline & Sync
+- Every move is saved on your device immediately, in IndexedDB.
+- Changes reach the server a few seconds later and are retried with backoff if the connection drops.
+- Each save carries a version number, so an older copy can never overwrite a newer one. On a conflict, a completed game always wins. Otherwise the copy with more play time wins, and the other is kept as a snapshot.
+- The service worker caches app shells and static files only. Private API responses are never cached.
 
-The e2e suite starts `next start` against an in‑memory database. It makes no external calls.
+### Identity & Access
+- Guests get a real anonymous account the moment they start playing. Browsing alone creates nothing.
+- When a guest signs up or signs in, their games, results, rooms and streak move to the account. The move uses the server's own session data, so nobody can claim someone else's games.
+- Every read and write is checked against the signed-in user. Someone else's game answers `404`, as if it didn't exist.
+- Room codes are random, drawn with `crypto.randomInt`. Rooms expire after 7 days without activity.
+- Sign-in attempts are rate-limited, with counters stored in MongoDB so the limits hold across serverless instances.
 
-## Deploying to Vercel (Hobby)
+### Privacy Policy
+- datsudoku collects **nothing beyond what the game needs**. No analytics, no ads and no tracking scripts. Fonts are self-hosted.
+- The only data stored is:
+  - Your account (email and display name), if you create one
+  - Your games, results, personal bests and streak
+  - Room membership and display names
+- Deleting your account removes all of it.
 
-1. **MongoDB Atlas.**
-   - Create a cluster (M0 is fine) and a database user.
-   - Under Network Access, allow `0.0.0.0/0`. Vercel functions don't use fixed IPs.
-2. **Google OAuth** (optional).
-   - In Google Cloud Console, create an OAuth client of type "Web application".
-   - Authorized JavaScript origin: `https://<your-domain>`.
-   - Redirect URI: `https://<your-domain>/api/auth/callback/google`.
-3. **Vercel.**
-   - Import the repository.
-   - Set these environment variables for Production (and Preview if you use it): `MONGODB_URI`, `MONGODB_DB_NAME`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` (your production URL), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `YOUDOSUDOKU_API_KEY`.
-4. **Deploy.**
-   - Indexes are created automatically on first use.
-   - The Daily Challenge is assigned on the first request of each UTC day, so no cron job is needed.
-5. **iPhone.**
-   - Open the site in Safari, tap Share, then Add to Home Screen, and launch it from the Home Screen.
-   - Open a game, turn on Airplane Mode, and confirm the game reopens and stays playable.
+<br>
 
-Vercel Hobby is for personal, non‑commercial use. If the app becomes a commercial product, move it to a plan that permits commercial use.
+**Made with love for puzzle lovers. 💙**  
+*Nine by nine. One answer.*

@@ -37,7 +37,8 @@ test("exposes PWA install metadata", async ({ page }) => {
     "content",
     "yes",
   );
-  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/icons/apple-touch-icon.png");
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", /\/apple-icon\.png/);
+  await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", /\/icon\.svg/);
   const manifest = await (await page.request.get("/manifest.webmanifest")).json();
   expect(manifest.display).toBe("standalone");
   expect(manifest.icons.some((i: { purpose: string }) => i.purpose === "maskable")).toBe(true);
