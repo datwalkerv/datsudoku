@@ -9,9 +9,8 @@ import {
   CalendarDays,
   ChevronRight,
   CloudOff,
-  Flame,
-  Grid3x3,
   Loader2,
+  Play,
   Settings,
   Share,
   Trophy,
@@ -19,7 +18,8 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Group, PageShell, SectionLabel } from "@/components/layout/page-header";
+import { Group, ListRow, PageShell, SectionFooter, SectionLabel } from "@/components/layout/page-header";
+import { Segmented } from "@/components/ui/segmented";
 import { MiniBoard } from "./mini-board";
 import { useAccount } from "@/components/providers/account-provider";
 import { useOnline } from "@/hooks/use-online";
@@ -30,7 +30,6 @@ import { api } from "@/lib/client/api";
 import type { DailyStatus } from "@/lib/daily/types";
 import { DIFFICULTIES, DIFFICULTY_LABEL, type Difficulty } from "@/lib/sudoku/types";
 import { formatDateKey, formatDuration } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 const DIFFICULTY_KEY = "sudoku:difficulty";
 const difficultyListeners = new Set<() => void>();
@@ -117,126 +116,144 @@ export function HomeScreen() {
     }
   };
 
+  const signedIn = account && !account.isAnonymous;
+  const streak = daily?.streak ?? 0;
+
   return (
-    <PageShell className="gap-8 pb-10">
-      <header className="safe-pt flex items-center justify-between pt-4">
-        <div>
-          <h1 className="text-[28px] leading-tight font-semibold tracking-tight">Sudoku</h1>
-          <p className="text-sm text-muted-foreground">
-            {account && !account.isAnonymous ? `Welcome back, ${account.name.split(" ")[0]}` : "Calm, precise, distraction‑free."}
+    <PageShell className="pb-6">
+      <header className="safe-pt flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-3">
+        <Link
+          href={signedIn ? "/settings" : "/sign-in"}
+          aria-label={signedIn ? "Profile" : "Sign in"}
+          className="pressable flex size-10 shrink-0 items-center justify-center rounded-full bg-primary type-headline text-primary-foreground"
+        >
+          {signedIn ? account.name.trim().charAt(0).toUpperCase() : <UserRound className="size-5" strokeWidth={2} />}
+        </Link>
+        <div className="min-w-0 flex-1 leading-tight">
+          {signedIn ? (
+            <p className="truncate type-headline">Welcome back, {account.name.split(" ")[0]}</p>
+          ) : (
+            <p className="type-headline">Sudoku</p>
+          )}
+          <p className="truncate type-caption text-muted-foreground">
+            {daily ? formatDateKey(daily.dateKey, { weekday: "long", month: "long", day: "numeric" }) : "Guest"}
           </p>
         </div>
         <Link
-          href={account && !account.isAnonymous ? "/settings" : "/sign-in"}
-          className="flex h-10 items-center gap-1.5 rounded-full border bg-card px-3 text-sm transition-colors hover:bg-secondary"
-          aria-label={account && !account.isAnonymous ? "Account and settings" : "Sign in"}
+          href="/stats"
+          aria-label="Statistics"
+          className="pressable flex size-10 items-center justify-center rounded-full bg-fill"
         >
-          <UserRound className="size-4 text-muted-foreground" />
-          <span className="max-w-28 truncate">{account && !account.isAnonymous ? account.name : "Sign in"}</span>
+          <BarChart3 className="size-[19px]" strokeWidth={2} />
         </Link>
       </header>
 
-      {!online && (
-        <p className="-mb-4 flex items-center gap-2 rounded-xl bg-secondary px-3 py-2 text-[13px] text-muted-foreground">
-          <CloudOff className="size-4 shrink-0" /> Offline. Saved games and new practice games still work; sign-in,
-          leaderboards, rooms and the Daily Challenge need a connection.
+      <section className="pt-10 pb-9 text-center" aria-label="Daily streak">
+        <p className="type-subhead font-medium text-muted-foreground">Daily streak</p>
+        <p className="mt-2 type-display">
+          {streak}
+          <span className="ml-2 align-middle text-2xl font-semibold tracking-tight text-muted-foreground">
+            {streak === 1 ? "day" : "days"}
+          </span>
         </p>
-      )}
+        <Link
+          href="/daily"
+          className="pressable mt-5 inline-flex h-9 items-center gap-1.5 rounded-full bg-fill pr-3 pl-4 type-subhead font-semibold"
+        >
+          {daily?.result ? "Today's puzzle solved" : "Play today's puzzle"}
+          <ChevronRight className="size-4 text-muted-foreground" strokeWidth={2.4} />
+        </Link>
+      </section>
 
-      {resume && (
-        <section aria-labelledby="continue-label" className="animate-fade-up">
-          <SectionLabel>
-            <span id="continue-label">Continue</span>
-          </SectionLabel>
+      <nav aria-label="Quick actions" className="grid grid-cols-4 gap-2 pb-9">
+        <Action href="/daily" icon={CalendarDays} label="Daily" />
+        <Action href="/multiplayer" icon={Users} label="Rooms" />
+        <Action href="/leaderboard" icon={Trophy} label="Ranks" />
+        <Action href="/stats" icon={BarChart3} label="Stats" />
+      </nav>
+
+      <div className="flex flex-col gap-8">
+        {!online && (
+          <div className="flex items-start gap-3 rounded-[24px] bg-card p-5">
+            <CloudOff className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+            <p className="type-subhead text-muted-foreground">
+              You&apos;re offline. Saved games and new practice games still work. Sign-in, leaderboards, rooms and the
+              Daily Challenge need a connection.
+            </p>
+          </div>
+        )}
+
+        {resume && (
           <Link
             href={`/play?id=${encodeURIComponent(resume.id)}`}
-            className="group flex items-center gap-4 rounded-[14px] border bg-card p-3 pr-4 transition-colors hover:bg-secondary/40"
+            className="pressable animate-fade-up flex items-center gap-4 rounded-[24px] bg-card p-4"
           >
-            <MiniBoard givens={resume.givens} values={resume.state.values} className="w-20 shrink-0" />
+            <MiniBoard givens={resume.givens} values={resume.state.values} className="w-[76px] shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="font-medium">
-                {resume.mode === "daily" ? "Daily Challenge" : resume.mode === "room" ? `Room ${resume.roomCode}` : "Classic"}
+              <p className="type-caption font-medium text-muted-foreground">Continue</p>
+              <p className="mt-0.5 type-headline">
+                {resume.mode === "daily" ? "Daily Challenge" : resume.mode === "room" ? `Room ${resume.roomCode}` : "Classic"} ·{" "}
+                {DIFFICULTY_LABEL[resume.difficulty]}
               </p>
-              <p className="text-sm text-muted-foreground tabular-nums">
-                {DIFFICULTY_LABEL[resume.difficulty]} · {formatDuration(resume.state.elapsedMs)} · {progressOf(resume)}%
-              </p>
-            </div>
-            <ChevronRight className="size-5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </section>
-      )}
-
-      <section aria-labelledby="new-label">
-        <SectionLabel>
-          <span id="new-label">New game</span>
-        </SectionLabel>
-        <div className="rounded-[14px] border bg-card p-3">
-          <div role="radiogroup" aria-label="Difficulty" className="grid grid-cols-4 gap-1 rounded-[10px] bg-secondary p-1">
-            {DIFFICULTIES.map((d) => (
-              <button
-                key={d}
-                type="button"
-                role="radio"
-                aria-checked={difficulty === d}
-                onClick={() => setDifficulty(d)}
-                className={cn(
-                  "h-9 rounded-[8px] text-sm transition-[background-color,color,box-shadow] duration-150",
-                  difficulty === d
-                    ? "bg-card font-medium text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.08)]"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {DIFFICULTY_LABEL[d]}
-              </button>
-            ))}
-          </div>
-          <Button onClick={newGame} disabled={busy} className="mt-3 h-12 w-full rounded-[10px] text-[15px]">
-            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-            Start {DIFFICULTY_LABEL[difficulty]} game
-          </Button>
-          {difficulty === "expert" && (
-            <p className="mt-2 text-center text-xs text-muted-foreground">Expert puzzles are generated and verified in-house.</p>
-          )}
-        </div>
-      </section>
-
-      <section aria-labelledby="modes-label">
-        <SectionLabel>
-          <span id="modes-label">Modes</span>
-        </SectionLabel>
-        <Group>
-          <Row icon={Grid3x3} title="Classic" detail="Play at your own pace" onClick={newGame} />
-          <Row
-            icon={CalendarDays}
-            title="Daily Challenge"
-            detail={dailyDetail(daily, online)}
-            href="/daily"
-            trailing={
-              daily && daily.streak > 0 ? (
-                <span className="flex items-center gap-0.5 text-xs font-medium tabular-nums text-foreground/80" aria-label={`${daily.streak} day streak`}>
-                  <Flame className="size-3.5 text-orange-500" /> {daily.streak}
+              <div className="mt-2.5 flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-fill">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${progressOf(resume)}%` }} />
+                </div>
+                <span className="type-caption font-medium text-muted-foreground tabular-nums">
+                  {formatDuration(resume.state.elapsedMs)}
                 </span>
-              ) : daily?.result ? (
-                <span className="text-xs font-medium text-tint">Done</span>
-              ) : null
-            }
-          />
-          <Row icon={Users} title="Multiplayer" detail="Private rooms, same puzzle" href="/multiplayer" />
-        </Group>
-      </section>
+              </div>
+            </div>
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Play className="size-4 translate-x-px fill-current" />
+            </span>
+          </Link>
+        )}
 
-      <section aria-labelledby="more-label">
-        <SectionLabel>
-          <span id="more-label">More</span>
-        </SectionLabel>
-        <Group>
-          <Row icon={Trophy} title="Leaderboards" href="/leaderboard" />
-          <Row icon={BarChart3} title="Statistics" href="/stats" />
-          <Row icon={Settings} title="Settings" href="/settings" />
-          {!standalone && <Row icon={Share} title="Add to Home Screen" detail="Play full screen, even offline" href="/install" />}
-        </Group>
-      </section>
+        <section aria-labelledby="new-label">
+          <SectionLabel>
+            <span id="new-label">New game</span>
+          </SectionLabel>
+          <div className="space-y-4 rounded-[24px] bg-card p-4">
+            <Segmented
+              label="Difficulty"
+              options={DIFFICULTIES.map((d) => [d, DIFFICULTY_LABEL[d]] as const)}
+              value={difficulty}
+              onChange={setDifficulty}
+            />
+            <Button onClick={newGame} disabled={busy} className="w-full">
+              {busy && <Loader2 className="animate-spin" />}
+              Start {DIFFICULTY_LABEL[difficulty]} game
+            </Button>
+          </div>
+          {difficulty === "expert" && <SectionFooter>Expert puzzles are generated and verified in-house.</SectionFooter>}
+        </section>
+
+        <section aria-labelledby="more-label">
+          <SectionLabel>
+            <span id="more-label">More</span>
+          </SectionLabel>
+          <Group>
+            <ListRow icon={CalendarDays} title="Daily Challenge" detail={dailyDetail(daily, online)} href="/daily" />
+            <ListRow icon={Users} title="Multiplayer" detail="Private rooms, same puzzle" href="/multiplayer" />
+            <ListRow icon={Settings} title="Settings" detail="Theme, notes and feedback" href="/settings" />
+            {!standalone && <ListRow icon={Share} title="Add to Home Screen" detail="Full screen, works offline" href="/install" />}
+          </Group>
+        </section>
+      </div>
     </PageShell>
+  );
+}
+
+/** A round quick-action button with its label underneath. */
+function Action({ href, icon: Icon, label }: { href: string; icon: typeof Trophy; label: string }) {
+  return (
+    <Link href={href} className="group flex flex-col items-center gap-2">
+      <span className="flex size-[52px] items-center justify-center rounded-full bg-card transition-transform duration-150 group-active:scale-90">
+        <Icon className="size-[22px]" strokeWidth={1.9} aria-hidden />
+      </span>
+      <span className="type-caption font-medium">{label}</span>
+    </Link>
   );
 }
 
@@ -254,50 +271,3 @@ function dailyDetail(daily: DailyStatus | null, online: boolean) {
   if (daily.game) return `${date} · in progress`;
   return `${date} · ${DIFFICULTY_LABEL[daily.difficulty]} · ${daily.participants} solved`;
 }
-
-function Row({
-  icon: Icon,
-  title,
-  detail,
-  href,
-  onClick,
-  trailing,
-  busy,
-}: {
-  icon: typeof Trophy;
-  title: string;
-  detail?: string;
-  href?: string;
-  onClick?: () => void;
-  trailing?: React.ReactNode;
-  busy?: boolean;
-}) {
-  const inner = (
-    <>
-      <span className="flex size-8 items-center justify-center rounded-lg bg-secondary text-foreground/80">
-        <Icon className="size-[18px]" strokeWidth={1.75} />
-      </span>
-      <span className="min-w-0 flex-1 text-left">
-        <span className="block text-[15px]">{title}</span>
-        {detail && <span className="block truncate text-[13px] text-muted-foreground">{detail}</span>}
-      </span>
-      {trailing}
-      {busy ? (
-        <Loader2 className="size-4 animate-spin text-muted-foreground" />
-      ) : (
-        <ChevronRight className="size-4 text-muted-foreground/70" />
-      )}
-    </>
-  );
-  const cls = "flex min-h-14 w-full items-center gap-3 px-3 py-2 transition-colors hover:bg-secondary/50 active:bg-secondary";
-  return href ? (
-    <Link href={href} className={cls}>
-      {inner}
-    </Link>
-  ) : (
-    <button type="button" onClick={onClick} className={cls} disabled={busy}>
-      {inner}
-    </button>
-  );
-}
-

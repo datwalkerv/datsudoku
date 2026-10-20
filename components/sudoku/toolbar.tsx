@@ -25,64 +25,58 @@ export function Toolbar(props: ToolbarProps) {
       <Tool icon={Eraser} label="Erase" shortcut="⌫" onClick={props.onErase} disabled={props.disabled} />
       <Tool
         icon={Pencil}
-        label="Notes"
+        label={props.notesMode ? "Notes On" : "Notes"}
+        name="Notes"
         shortcut="N"
         onClick={props.onToggleNotes}
         disabled={props.disabled}
         pressed={props.notesMode}
-        badge={props.notesMode ? "On" : "Off"}
       />
       <Tool icon={Lightbulb} label="Hint" shortcut="H" onClick={props.onHint} disabled={props.disabled || props.hintBusy} />
     </div>
   );
 }
 
+/** A round tool button; feedback happens on press, and "Notes" fills with the tint when on. */
 function Tool({
   icon: Icon,
   label,
+  name = label,
   shortcut,
   onClick,
   disabled,
   pressed,
-  badge,
 }: {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
+  /** Stable accessible name (the visible label may change). */
+  name?: string;
   shortcut: string;
   onClick: () => void;
   disabled?: boolean;
   pressed?: boolean;
-  badge?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={name}
       aria-pressed={pressed}
       aria-keyshortcuts={shortcut}
-      title={`${label} (${shortcut})`}
-      className={cn(
-        "relative flex h-14 flex-col items-center justify-center gap-1 rounded-[10px] text-muted-foreground touch-manipulation select-none",
-        "transition-[background-color,color,transform] duration-100 hover:bg-secondary/70 hover:text-foreground active:scale-[0.95]",
-        "disabled:opacity-35 disabled:hover:bg-transparent",
-        pressed && "text-tint hover:text-tint",
-      )}
+      title={`${name} (${shortcut})`}
+      className="group flex flex-col items-center gap-1.5 py-1 touch-manipulation select-none disabled:opacity-35"
     >
-      <span className="relative">
-        <Icon className="size-[22px]" strokeWidth={1.6} aria-hidden />
-        {badge && (
-          <span
-            className={cn(
-              "absolute -top-1.5 -right-4 rounded-full px-1 text-[9px] leading-[14px] font-semibold uppercase",
-              pressed ? "bg-tint text-primary-foreground" : "bg-secondary text-muted-foreground",
-            )}
-          >
-            {badge}
-          </span>
+      <span
+        className={cn(
+          "flex size-[52px] items-center justify-center rounded-full transition-[background-color,color,transform] duration-150",
+          "group-active:scale-90 group-disabled:group-active:scale-100",
+          pressed ? "bg-primary text-primary-foreground" : "bg-card text-foreground",
         )}
+      >
+        <Icon className="size-[22px]" strokeWidth={1.9} aria-hidden />
       </span>
-      <span className="text-[11px] leading-none">{label}</span>
+      <span className={cn("type-caption font-medium", pressed ? "text-tint" : "text-foreground")}>{label}</span>
     </button>
   );
 }

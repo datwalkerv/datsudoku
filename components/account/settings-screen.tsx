@@ -5,9 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import { ChevronRight, Loader2 } from "lucide-react";
-import { Group, PageHeader, PageShell, SectionLabel } from "@/components/layout/page-header";
-import { Segmented } from "@/components/leaderboard/leaderboard-screen";
+import {
+  CircleAlert,
+  Grid3x3,
+  Hash,
+  Loader2,
+  Share,
+  Sparkles,
+  Timer,
+  Trophy,
+  BarChart3,
+  Vibrate,
+  Volume2,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
+import { Group, ListRow, PageHeader, PageShell, SectionFooter, SectionLabel } from "@/components/layout/page-header";
+import { Segmented } from "@/components/ui/segmented";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,14 +38,14 @@ import { updateSettings, useSettings, type Settings } from "@/lib/client/setting
 import { authClient } from "@/lib/auth-client";
 import { useStandalone } from "@/hooks/use-standalone";
 
-const TOGGLES: { key: keyof Settings; label: string; detail?: string }[] = [
-  { key: "autoCleanup", label: "Clean up notes automatically", detail: "Removes a placed number from notes in its row, column and box" },
-  { key: "showMistakes", label: "Show mistakes", detail: "Marks entries that don't match the solution" },
-  { key: "highlightRelated", label: "Highlight row, column and box" },
-  { key: "highlightMatches", label: "Highlight matching numbers" },
-  { key: "showTimer", label: "Show timer" },
-  { key: "sound", label: "Sounds" },
-  { key: "haptics", label: "Haptics", detail: "On supported devices" },
+const TOGGLES: { key: keyof Settings; label: string; detail?: string; icon: LucideIcon }[] = [
+  { key: "autoCleanup", label: "Auto-Clean Notes", detail: "Remove a placed number from related notes", icon: Sparkles },
+  { key: "showMistakes", label: "Show Mistakes", detail: "Mark entries that don't match the solution", icon: CircleAlert },
+  { key: "highlightRelated", label: "Highlight Row, Column & Box", icon: Grid3x3 },
+  { key: "highlightMatches", label: "Highlight Matching Numbers", icon: Hash },
+  { key: "showTimer", label: "Show Timer", icon: Timer },
+  { key: "sound", label: "Sounds", icon: Volume2 },
+  { key: "haptics", label: "Haptics", detail: "On supported devices", icon: Vibrate },
 ];
 
 export function SettingsScreen() {
@@ -41,8 +55,8 @@ export function SettingsScreen() {
 
   return (
     <PageShell>
-      <PageHeader title="Settings" />
-      <div className="space-y-8 pt-2 pb-6">
+      <PageHeader title="Profile" backHref={null} />
+      <div className="space-y-10 pb-6">
         <AccountSection />
 
         <section>
@@ -62,14 +76,16 @@ export function SettingsScreen() {
         <section>
           <SectionLabel>Game</SectionLabel>
           <Group>
-            {TOGGLES.map(({ key, label, detail }) => (
-              <label key={key} className="flex min-h-12 cursor-pointer items-center gap-3 px-4 py-2.5">
-                <span className="flex-1">
-                  <span className="block text-[15px]">{label}</span>
-                  {detail && <span className="block text-[13px] text-muted-foreground">{detail}</span>}
-                </span>
-                <Switch checked={settings[key]} onCheckedChange={(v) => updateSettings({ [key]: v })} aria-label={label} />
-              </label>
+            {TOGGLES.map(({ key, label, detail, icon }) => (
+              <ListRow
+                key={key}
+                icon={icon}
+                title={label}
+                detail={detail}
+                trailing={
+                  <Switch checked={settings[key]} onCheckedChange={(v) => updateSettings({ [key]: v })} aria-label={label} />
+                }
+              />
             ))}
           </Group>
         </section>
@@ -77,26 +93,17 @@ export function SettingsScreen() {
         <section>
           <SectionLabel>About</SectionLabel>
           <Group>
-            {!standalone && <LinkRow href="/install" label="Add to Home Screen" />}
-            <LinkRow href="/stats" label="Statistics" />
-            <LinkRow href="/leaderboard" label="Leaderboards" />
+            {!standalone && <ListRow icon={Share} title="Add to Home Screen" href="/install" />}
+            <ListRow icon={BarChart3} title="Statistics" href="/stats" />
+            <ListRow icon={Trophy} title="Leaderboards" href="/leaderboard" />
           </Group>
-          <p className="px-1 pt-3 text-xs text-muted-foreground">
+          <SectionFooter>
             Puzzles from YouDoSudoku are verified for a unique solution before play. Expert puzzles are generated
             in-house.
-          </p>
+          </SectionFooter>
         </section>
       </div>
     </PageShell>
-  );
-}
-
-function LinkRow({ href, label }: { href: string; label: string }) {
-  return (
-    <Link href={href} className="flex min-h-12 items-center px-4 text-[15px] transition-colors hover:bg-secondary/50">
-      <span className="flex-1">{label}</span>
-      <ChevronRight className="size-4 text-muted-foreground/70" />
-    </Link>
   );
 }
 
@@ -115,17 +122,20 @@ function AccountSection() {
     return (
       <section>
         <SectionLabel>Account</SectionLabel>
-        <div className="space-y-3 rounded-[14px] border bg-card p-4">
-          <p className="text-sm text-muted-foreground">
-            You&apos;re playing as a guest. Create an account to appear on leaderboards and keep your progress on every
-            device — your current games and streak come with you.
+        <div className="rounded-[20px] bg-card p-5 text-center shadow-[var(--shadow-card)]">
+          <span className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-fill text-muted-foreground">
+            <UserRound className="size-7" strokeWidth={1.8} />
+          </span>
+          <p className="type-headline">Playing as a guest</p>
+          <p className="mx-auto mt-1 max-w-72 type-subhead text-muted-foreground">
+            Create an account to appear on leaderboards and sync across devices. Your games and streak come with you.
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            <Button asChild className="h-11 rounded-[10px]">
-              <Link href="/sign-up">Create account</Link>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button asChild>
+              <Link href="/sign-up">Create Account</Link>
             </Button>
-            <Button asChild variant="secondary" className="h-11 rounded-[10px]">
-              <Link href="/sign-in">Sign in</Link>
+            <Button asChild variant="secondary">
+              <Link href="/sign-in">Sign In</Link>
             </Button>
           </div>
         </div>
@@ -171,9 +181,20 @@ function AccountSection() {
     <section>
       <SectionLabel>Account</SectionLabel>
       <Group>
-        <div className="flex min-h-12 items-center gap-3 px-4 py-2">
-          <label htmlFor="display-name" className="w-28 text-[15px]">
-            Display name
+        <div className="flex items-center gap-3 px-4 py-3">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary type-title2 text-primary-foreground">
+            {account.name.trim().charAt(0).toUpperCase() || "?"}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate type-title3">{account.name}</span>
+            <span className="block truncate type-subhead text-muted-foreground">{account.email}</span>
+          </span>
+        </div>
+      </Group>
+      <Group className="mt-5">
+        <div className="relative flex min-h-11 items-center gap-3 px-4 after:absolute after:right-0 after:bottom-0 after:left-4 after:h-px after:scale-y-50 after:bg-border">
+          <label htmlFor="display-name" className="type-body">
+            Display Name
           </label>
           <Input
             id="display-name"
@@ -182,24 +203,14 @@ function AccountSection() {
             onChange={(e) => setName(e.target.value)}
             onBlur={saveName}
             onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
-            className="h-9 flex-1 border-0 bg-transparent px-0 text-right shadow-none focus-visible:ring-0"
+            className="h-11 flex-1 border-0 bg-transparent px-0 text-right type-body text-muted-foreground shadow-none focus-visible:text-foreground focus-visible:ring-0"
           />
           {saving && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
         </div>
-        <div className="flex min-h-12 items-center px-4 text-[15px]">
-          <span className="flex-1">Email</span>
-          <span className="truncate text-muted-foreground">{account.email}</span>
-        </div>
-        <button type="button" onClick={signOut} className="flex min-h-12 w-full items-center px-4 text-[15px] text-tint hover:bg-secondary/50">
-          Sign out
-        </button>
-        <button
-          type="button"
-          onClick={() => setDeleteOpen(true)}
-          className="flex min-h-12 w-full items-center px-4 text-[15px] text-destructive hover:bg-secondary/50"
-        >
-          Delete account
-        </button>
+        <ListRow title="Sign Out" tint chevron={false} onClick={signOut} />
+      </Group>
+      <Group className="mt-5">
+        <ListRow title="Delete Account" destructive chevron={false} onClick={() => setDeleteOpen(true)} />
       </Group>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -216,14 +227,14 @@ function AccountSection() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11"
+            className="h-11 rounded-[10px] border-0 bg-fill shadow-none"
           />
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>
+            <Button variant="secondary" onClick={() => setDeleteOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={deleteAccount} disabled={deleting}>
-              {deleting && <Loader2 className="size-4 animate-spin" />} Delete account
+              {deleting && <Loader2 className="animate-spin" />} Delete
             </Button>
           </DialogFooter>
         </DialogContent>

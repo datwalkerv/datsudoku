@@ -12,14 +12,14 @@ interface NumberPadProps {
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-/** Digit entry. Value keys show how many of that digit are still missing. */
+/** Digit keys. Value keys show how many of that digit are still missing. */
 export function NumberPad({ kind, counts, disabled, onDigit }: NumberPadProps) {
   const notes = kind === "note";
   return (
     <div
       role="group"
       aria-label={notes ? "Enter note" : "Enter number"}
-      className={cn("grid grid-cols-9 gap-1 sm:gap-1.5", notes && "animate-fade-up text-ink-entry")}
+      className={cn("grid grid-cols-9 gap-1.5", notes && "animate-fade-up")}
     >
       {DIGITS.map((d) => {
         const remaining = Math.max(0, 9 - counts[d]);
@@ -32,22 +32,17 @@ export function NumberPad({ kind, counts, disabled, onDigit }: NumberPadProps) {
             onClick={() => onDigit(d)}
             aria-label={notes ? `Note ${d}` : `Number ${d}${done ? ", all placed" : `, ${remaining} left`}`}
             className={cn(
-              "group flex h-14 flex-col items-center justify-center rounded-[10px] touch-manipulation select-none sm:h-16",
-              !notes && "text-foreground",
-              "transition-[background-color,transform,opacity] duration-100 active:scale-[0.94] active:bg-secondary",
-              "hover:bg-secondary/70 disabled:opacity-40",
-              "focus-visible:outline-2 focus-visible:outline-ring",
-              done && "opacity-30",
+              "flex h-[3.75rem] flex-col items-center justify-center rounded-[18px] bg-key touch-manipulation select-none",
+              "transition-[transform,background-color,opacity] duration-100 active:scale-[0.93] active:bg-fill",
+              "disabled:opacity-40",
+              notes ? "text-ink-entry" : "text-foreground",
+              done && "opacity-35",
             )}
           >
-            <span
-              className="text-[1.65rem] leading-none font-normal tabular-nums sm:text-[1.85rem]"
-            >
-              {d}
-            </span>
-            <span className="mt-1 h-3 text-[10px] leading-none tabular-nums text-muted-foreground">
-              {done || notes ? "" : remaining}
-            </span>
+            <span className="text-[2rem] leading-none font-semibold tabular-nums tracking-tight">{d}</span>
+            {!notes && (
+              <span className="mt-1 h-3 text-[0.6875rem] leading-3 font-medium tabular-nums text-muted-foreground">{done ? "" : remaining}</span>
+            )}
           </button>
         );
       })}

@@ -14,12 +14,12 @@ export function InstallScreen() {
       <PageHeader title="Add to Home Screen" />
       <div className="space-y-6 pt-4">
         {standalone ? (
-          <p className="flex items-center gap-2 rounded-[14px] border bg-card p-4 text-sm">
-            <CheckCircle2 className="size-5 text-tint" /> Sudoku is installed. You&apos;re using the Home Screen app.
+          <p className="flex items-center gap-2 rounded-[14px] bg-card p-4 type-body">
+            <CheckCircle2 className="size-5 text-foreground" /> Sudoku is installed. You&apos;re using the Home Screen app.
           </p>
         ) : (
           <>
-            <p className="text-[15px] text-muted-foreground">
+            <p className="type-body text-muted-foreground">
               Install Sudoku to play full screen, launch it from your Home Screen, and keep playing saved games offline.
             </p>
             <ol className="space-y-3">
@@ -34,7 +34,7 @@ export function InstallScreen() {
                 Tap <span className="font-medium text-foreground">Add</span>. Open Sudoku from your Home Screen.
               </Step>
             </ol>
-            <p className="text-xs text-muted-foreground">
+            <p className="px-4 type-footnote text-muted-foreground">
               Games you&apos;ve opened stay available offline. Signing in, leaderboards, rooms, the Daily Challenge and
               new server puzzles need a connection; offline you can still start practice games.
             </p>
@@ -47,7 +47,7 @@ export function InstallScreen() {
 
 function Step({ n, icon, children }: { n: number; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <li className="flex items-center gap-4 rounded-[14px] border bg-card p-4 text-[15px] text-muted-foreground">
+    <li className="flex items-center gap-4 rounded-[14px] bg-card p-4 type-body text-muted-foreground">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-tint" aria-hidden>
         {icon}
       </span>

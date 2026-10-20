@@ -56,14 +56,14 @@ export function AuthForm({ mode, googleEnabled }: { mode: "sign-in" | "sign-up";
   return (
     <PageShell>
       <PageHeader title={isSignUp ? "Create account" : "Sign in"} />
-      <div className="mx-auto w-full max-w-sm space-y-6 pt-6">
+      <div className="mx-auto w-full max-w-sm space-y-6">
         {hasGuestProgress && (
-          <p className="rounded-xl bg-accent px-3 py-2 text-[13px] text-accent-foreground">
+          <p className="rounded-[14px] bg-accent p-4 type-subhead text-accent-foreground">
             Your guest games, results and streak will move to this account.
           </p>
         )}
         {!online && (
-          <p className="rounded-xl bg-secondary px-3 py-2 text-[13px] text-muted-foreground">
+          <p className="rounded-[14px] bg-card p-4 type-subhead text-muted-foreground">
             You&apos;re offline. Signing in needs a connection.
           </p>
         )}
@@ -75,12 +75,12 @@ export function AuthForm({ mode, googleEnabled }: { mode: "sign-in" | "sign-up";
               variant="outline"
               onClick={google}
               disabled={busy !== null || !online}
-              className="h-12 w-full rounded-[12px] bg-card text-[15px]"
+              className="w-full"
             >
               {busy === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleMark />}
               Continue with Google
             </Button>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 type-footnote text-muted-foreground">
               <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
             </div>
           </>
@@ -89,11 +89,11 @@ export function AuthForm({ mode, googleEnabled }: { mode: "sign-in" | "sign-up";
         <form onSubmit={submit} className="space-y-4">
           {isSignUp && (
             <Field label="Display name" id="name">
-              <Input id="name" required maxLength={40} autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} className="h-11 bg-card" />
+              <Input id="name" required maxLength={40} autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} className={FIELD} />
             </Field>
           )}
           <Field label="Email" id="email">
-            <Input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 bg-card" />
+            <Input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} />
           </Field>
           <Field label="Password" id="password">
             <Input
@@ -104,21 +104,21 @@ export function AuthForm({ mode, googleEnabled }: { mode: "sign-in" | "sign-up";
               autoComplete={isSignUp ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11 bg-card"
+              className={FIELD}
             />
           </Field>
           {error && (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="px-4 type-footnote text-destructive">
               {error}
             </p>
           )}
-          <Button type="submit" disabled={busy !== null || !online} className="h-12 w-full rounded-[12px] text-[15px]">
+          <Button type="submit" disabled={busy !== null || !online} className="w-full">
             {busy === "email" && <Loader2 className="size-4 animate-spin" />}
             {isSignUp ? "Create account" : "Sign in"}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center type-subhead text-muted-foreground">
           {isSignUp ? "Already have an account? " : "New here? "}
           <Link href={isSignUp ? "/sign-in" : "/sign-up"} className="text-tint hover:underline">
             {isSignUp ? "Sign in" : "Create an account"}
@@ -129,10 +129,12 @@ export function AuthForm({ mode, googleEnabled }: { mode: "sign-in" | "sign-up";
   );
 }
 
+const FIELD = "h-[50px] rounded-[12px] border-0 bg-card px-4 type-body shadow-none placeholder:text-label-tertiary";
+
 function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-[13px] text-muted-foreground">
+      <Label htmlFor={id} className="px-4 type-footnote font-normal uppercase text-muted-foreground">
         {label}
       </Label>
       {children}

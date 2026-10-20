@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
-import { MoreHorizontal, Pause, Play, RotateCcw, Sparkles, Plus, Settings2, Trophy, Users } from "lucide-react";
+import { Ellipsis, Pause, Play, RotateCcw, Sparkles, Plus, Settings2, Trophy, Users } from "lucide-react";
 import { Board } from "./board";
 import { NumberPad } from "./number-pad";
 import { Toolbar } from "./toolbar";
@@ -36,6 +36,7 @@ import { formatDateKey, formatDuration } from "@/lib/format";
 import { DIFFICULTY_LABEL } from "@/lib/sudoku/types";
 import type { LocalGame } from "@/lib/local/db";
 import { useAccount } from "@/components/providers/account-provider";
+import { cn } from "@/lib/utils";
 
 export function GameScreen({ game }: { game: LocalGame }) {
   const router = useRouter();
@@ -190,23 +191,23 @@ export function GameScreen({ game }: { game: LocalGame }) {
     }
   };
 
-  const title = titleFor(game);
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[560px] flex-col safe-px safe-pb lg:max-w-5xl">
       <PageHeader
-        title={title}
-        subtitle={isRanked ? "Ranked · server timed" : game.serverBacked ? undefined : "Offline game"}
+        large={false}
+        title={titleFor(game)}
+        subtitle={subtitleFor(game, isRanked)}
         backHref={game.roomCode ? `/multiplayer/${game.roomCode}` : "/"}
         backLabel={game.roomCode ? "Room" : "Home"}
         trailing={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Game menu" className="text-tint">
-                <MoreHorizontal className="size-5" />
+              <Button variant="ghost" size="icon" aria-label="Game menu" className="-mr-2">
+                <Ellipsis className="size-6" strokeWidth={2.2} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem disabled={!playing} onSelect={() => actions.fillCandidates()}>
                 <Sparkles /> Fill all notes
               </DropdownMenuItem>
@@ -229,33 +230,33 @@ export function GameScreen({ game }: { game: LocalGame }) {
         }
       />
 
-      <div className="flex flex-1 flex-col justify-between gap-4 pb-2 lg:flex-row lg:items-center lg:justify-center lg:gap-10">
-        {/* Board column */}
-        <div className="flex w-full flex-col gap-3 lg:max-w-[560px]">
-          <div className="flex items-center justify-between px-1 text-[13px] text-muted-foreground tabular-nums">
-            <span className="flex items-center gap-3">
-              <span>
-                Mistakes <span className="text-foreground">{state.mistakes}</span>
-              </span>
-              {state.hintsUsed > 0 && (
-                <span>
-                  Hints <span className="text-foreground">{state.hintsUsed}</span>
-                </span>
-              )}
-            </span>
-            <span className="flex items-center gap-2">
-              <SyncBadge status={game.serverBacked ? syncStatus : "device"} />
-              {settings.showTimer && <Timer ms={state.elapsedMs} />}
+      <div className="flex flex-1 flex-col gap-5 pt-2 pb-2 lg:flex-row lg:items-center lg:justify-center lg:gap-12">
+        {/* Board column: the board sits centered in the space above the controls. */}
+        <div className="flex w-full flex-1 flex-col justify-center gap-3 lg:max-w-[560px] lg:flex-none">
+          <div className="grid grid-cols-3 items-center px-1">
+            <Stat label="Mistakes" value={state.mistakes} tone={state.mistakes > 0 ? "error" : undefined} />
+            <div className="flex justify-center">
               <button
                 type="button"
                 onClick={paused ? actions.resume : actions.pause}
                 disabled={completed}
                 aria-label={paused ? "Resume timer" : "Pause timer"}
-                className="-mr-1 inline-flex size-8 items-center justify-center rounded-full text-foreground hover:bg-secondary disabled:opacity-40"
+                className="pressable inline-flex h-10 items-center gap-2 rounded-full bg-card pr-3.5 pl-4 disabled:opacity-60"
               >
-                {paused ? <Play className="size-4" /> : <Pause className="size-4" />}
+                <span className="type-headline tabular-nums tracking-normal" aria-hidden={!settings.showTimer}>
+                  {settings.showTimer ? formatDuration(state.elapsedMs) : paused ? "Paused" : "Playing"}
+                </span>
+                {paused ? (
+                  <Play className="size-3.5 fill-current text-tint" />
+                ) : (
+                  <Pause className="size-3.5 fill-current text-muted-foreground" />
+                )}
               </button>
-            </span>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              {state.hintsUsed > 0 && <Stat label="Hints" value={state.hintsUsed} align="end" />}
+              <SyncBadge status={game.serverBacked ? syncStatus : "device"} />
+            </div>
           </div>
 
           <div className="relative">
@@ -272,8 +273,8 @@ export function GameScreen({ game }: { game: LocalGame }) {
           </div>
         </div>
 
-        {/* Controls column */}
-        <div className="flex w-full flex-col gap-3 lg:max-w-[340px]">
+        {/* Controls: anchored low, within thumb reach. */}
+        <div className="flex w-full flex-col gap-3 lg:max-w-[360px]">
           <Toolbar
             canUndo={state.past.length > 0}
             canRedo={state.future.length > 0}
@@ -291,14 +292,14 @@ export function GameScreen({ game }: { game: LocalGame }) {
             <NumberPad kind="note" counts={counts} disabled={!playing} onDigit={withCell(actions.note)} />
           )}
           {completed && !completionOpen && (
-            <Button variant="secondary" className="h-11 rounded-xl" onClick={() => setCompletionOpen(true)}>
-              <Trophy className="size-4" /> View result
+            <Button variant="tinted" onClick={() => setCompletionOpen(true)}>
+              <Trophy /> View result
             </Button>
           )}
           {game.roomCode && (
-            <Button asChild variant="ghost" className="h-10 text-tint">
+            <Button asChild variant="ghost" size="sm">
               <Link href={`/multiplayer/${game.roomCode}`}>
-                <Users className="size-4" /> Room standings
+                <Users /> Room standings
               </Link>
             </Button>
           )}
@@ -330,7 +331,7 @@ export function GameScreen({ game }: { game: LocalGame }) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setHintConfirm(false)}>
+            <Button variant="secondary" onClick={() => setHintConfirm(false)}>
               Keep playing
             </Button>
             <Button
@@ -354,7 +355,7 @@ export function GameScreen({ game }: { game: LocalGame }) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRestartConfirm(false)}>
+            <Button variant="secondary" onClick={() => setRestartConfirm(false)}>
               Cancel
             </Button>
             <Button
@@ -374,38 +375,60 @@ export function GameScreen({ game }: { game: LocalGame }) {
 }
 
 function titleFor(game: LocalGame) {
-  const d = DIFFICULTY_LABEL[game.difficulty];
-  if (game.mode === "daily" && game.dailyKey) return `Daily · ${formatDateKey(game.dailyKey, { month: "short", day: "numeric" })}`;
-  if (game.mode === "room" && game.roomCode) return `Room ${game.roomCode} · ${d}`;
-  return `Classic · ${d}`;
+  if (game.mode === "daily" && game.dailyKey) return "Daily Challenge";
+  if (game.mode === "room" && game.roomCode) return `Room ${game.roomCode}`;
+  return DIFFICULTY_LABEL[game.difficulty];
 }
 
-function Timer({ ms }: { ms: number }) {
+function subtitleFor(game: LocalGame, ranked: boolean) {
+  const d = DIFFICULTY_LABEL[game.difficulty];
+  if (game.mode === "daily" && game.dailyKey) return `${formatDateKey(game.dailyKey, { month: "short", day: "numeric" })} · ${d}`;
+  if (game.mode === "room") return `${d} · Ranked`;
+  if (!game.serverBacked) return "Offline game";
+  return ranked ? "Ranked" : "Classic";
+}
+
+function Stat({
+  label,
+  value,
+  tone,
+  align = "start",
+}: {
+  label: string;
+  value: number;
+  tone?: "error";
+  align?: "start" | "end";
+}) {
   return (
-    <span className="min-w-[3.25rem] text-right font-medium text-foreground tabular-nums" aria-label={`Time ${formatDuration(ms)}`}>
-      {formatDuration(ms)}
-    </span>
+    <div className={cn("flex flex-col leading-none", align === "end" ? "items-end" : "items-start")}>
+      <span className="type-caption text-muted-foreground">{label}</span>
+      <span className={cn("mt-1 type-headline tabular-nums", tone === "error" && "text-destructive")}>{value}</span>
+    </div>
   );
 }
 
 function PauseOverlay({ onResume, ranked, state }: { onResume: () => void; ranked: boolean; state: GameState }) {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.16 }}
-      className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 rounded-[10px] bg-board"
+      // Opaque on purpose: pausing must hide the board.
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+      className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1 rounded-[22px] bg-board"
     >
-      <p className="text-[15px] font-medium">Paused</p>
-      <p className="text-sm text-muted-foreground tabular-nums">{formatDuration(state.elapsedMs)}</p>
+      <span className="mb-3 flex size-14 items-center justify-center rounded-full bg-accent text-tint">
+        <Pause className="size-6 fill-current" />
+      </span>
+      <p className="type-title2">Paused</p>
+      <p className="type-subhead text-muted-foreground tabular-nums">{formatDuration(state.elapsedMs)}</p>
       {ranked && (
-        <p className="max-w-60 text-center text-xs text-muted-foreground">
-          Ranked time is measured by the server and keeps running while paused.
+        <p className="mt-2 max-w-64 text-center type-footnote text-muted-foreground">
+          Leaderboard time is measured by the server and keeps running while paused.
         </p>
       )}
-      <Button onClick={onResume} className="h-11 rounded-full px-8" autoFocus>
-        <Play className="size-4" /> Resume
+      <Button onClick={onResume} className="mt-5 rounded-full px-10" autoFocus>
+        <Play className="fill-current" /> Resume
       </Button>
     </motion.div>
   );

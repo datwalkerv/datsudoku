@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design tokens.
- * Color, type, radius and motion live here; components only reference tokens.
+ * Design tokens, modelled on iOS system colors, materials and the SF type scale.
+ * Components only reference these tokens.
  */
 @theme inline {
   --color-background: var(--background);
@@ -28,6 +28,14 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* iOS semantic extras */
+  --color-label-tertiary: var(--label-tertiary);
+  --color-fill: var(--fill);
+  --color-fill-strong: var(--fill-strong);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-key: var(--key);
+
   /* Board palette */
   --color-board: var(--board);
   --color-grid-line: var(--grid-line);
@@ -42,30 +50,32 @@
   --color-ink-error: var(--ink-error);
   --color-tint: var(--tint);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
-  --font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-app), -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+  --font-heading: var(--font-app), -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
 
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 22px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
   --radius-3xl: 26px;
-  --radius-4xl: 30px;
+  --radius-4xl: 32px;
+
+  --shadow-card: 0 0 0 transparent;
+  --shadow-key: 0 0 0 transparent;
+  --shadow-thumb: 0 2px 6px rgb(0 0 0 / 0.1), 0 1px 1px rgb(0 0 0 / 0.04);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
 
-  --animate-cell-pop: cell-pop 140ms var(--ease-out-soft);
-  --animate-cell-complete: cell-complete 520ms var(--ease-out-soft) var(--ripple-delay, 0ms) both;
-  --animate-fade-up: fade-up 260ms var(--ease-out-soft) both;
+  --animate-cell-pop: cell-pop 180ms var(--ease-out-soft);
+  --animate-cell-complete: cell-complete 600ms var(--ease-out-soft) var(--ripple-delay, 0ms) both;
+  --animate-fade-up: fade-up 280ms var(--ease-out-soft) both;
 
   @keyframes cell-pop {
     from {
-      transform: scale(0.82);
-      opacity: 0.4;
+      transform: scale(0.7);
+      opacity: 0;
     }
     to {
       transform: scale(1);
@@ -76,7 +86,7 @@
     0% {
       background-color: var(--board);
     }
-    40% {
+    35% {
       background-color: var(--cell-match);
     }
     100% {
@@ -85,7 +95,7 @@
   }
   @keyframes fade-up {
     from {
-      transform: translateY(6px);
+      transform: translateY(8px);
       opacity: 0;
     }
     to {
@@ -96,75 +106,93 @@
 }
 
 :root {
-  --radius: 14px;
+  --radius: 24px;
 
-  /* Warm neutral light theme */
-  --background: oklch(0.982 0.004 85);
-  --foreground: oklch(0.2 0.005 85);
-  --card: oklch(0.995 0.002 85);
-  --card-foreground: oklch(0.2 0.005 85);
-  --popover: oklch(0.995 0.002 85);
-  --popover-foreground: oklch(0.2 0.005 85);
-  --primary: oklch(0.55 0.15 255);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.004 85);
-  --secondary-foreground: oklch(0.25 0.005 85);
-  --muted: oklch(0.955 0.004 85);
-  --muted-foreground: oklch(0.52 0.008 85);
-  --accent: oklch(0.95 0.012 255);
-  --accent-foreground: oklch(0.42 0.13 255);
-  --destructive: oklch(0.58 0.19 25);
-  --border: oklch(0.9 0.005 85);
-  --input: oklch(0.9 0.005 85);
-  --ring: oklch(0.55 0.15 255 / 0.55);
+  /* Light: cool gray canvas, white cards, one vivid blue accent. */
+  --background: #f4f5f7;
+  --foreground: #0b0c0e;
+  --card: #ffffff;
+  --card-foreground: #0b0c0e;
+  --popover: #ffffff;
+  --popover-foreground: #0b0c0e;
+  --primary: #0666eb;
+  --primary-foreground: #ffffff;
+  --secondary: rgb(11 12 14 / 0.06);
+  --secondary-foreground: #0b0c0e;
+  --muted: rgb(11 12 14 / 0.06);
+  --muted-foreground: #717a84;
+  --label-tertiary: rgb(11 12 14 / 0.3);
+  --accent: rgb(6 102 235 / 0.1);
+  --accent-foreground: #0666eb;
+  --destructive: #e23b3b;
+  --border: rgb(11 12 14 / 0.07);
+  --input: rgb(11 12 14 / 0.1);
+  --ring: rgb(6 102 235 / 0.45);
+  --fill: rgb(11 12 14 / 0.05);
+  --fill-strong: rgb(11 12 14 / 0.09);
+  --success: #0666eb;
+  --warning: #0b0c0e;
+  --key: transparent;
+  --material: rgb(244 245 247 / 0.78);
+  --glow: radial-gradient(90% 55% at 50% -12%, rgb(6 102 235 / 0.22), transparent 70%),
+    radial-gradient(60% 40% at 90% 0%, rgb(124 77 255 / 0.12), transparent 70%);
 
-  --board: oklch(0.995 0.002 85);
-  --grid-line: oklch(0.9 0.004 85);
-  --grid-strong: oklch(0.72 0.006 85);
-  --cell-related: oklch(0.965 0.008 255);
-  --cell-match: oklch(0.925 0.03 255);
-  --cell-selected: oklch(0.88 0.06 255);
-  --cell-conflict: oklch(0.95 0.035 25);
-  --ink-given: oklch(0.2 0.005 85);
-  --ink-entry: oklch(0.5 0.15 255);
-  --ink-note: oklch(0.5 0.008 85);
-  --ink-error: oklch(0.56 0.19 25);
-  --tint: oklch(0.55 0.15 255);
+  --board: #ffffff;
+  --grid-line: rgb(11 12 14 / 0.07);
+  --grid-strong: rgb(11 12 14 / 0.55);
+  --cell-related: rgb(6 102 235 / 0.04);
+  --cell-match: rgb(6 102 235 / 0.1);
+  --cell-selected: rgb(6 102 235 / 0.2);
+  --cell-conflict: rgb(226 59 59 / 0.1);
+  --ink-given: #0b0c0e;
+  --ink-entry: #0666eb;
+  --ink-note: #717a84;
+  --ink-error: #e23b3b;
+  --tint: #0666eb;
 }
 
 .dark {
-  /* Deep charcoal dark theme */
-  --background: oklch(0.17 0.003 260);
-  --foreground: oklch(0.95 0.003 85);
-  --card: oklch(0.205 0.003 260);
-  --card-foreground: oklch(0.95 0.003 85);
-  --popover: oklch(0.22 0.003 260);
-  --popover-foreground: oklch(0.95 0.003 85);
-  --primary: oklch(0.68 0.14 255);
-  --primary-foreground: oklch(0.16 0.01 260);
-  --secondary: oklch(0.24 0.003 260);
-  --secondary-foreground: oklch(0.92 0.003 85);
-  --muted: oklch(0.24 0.003 260);
-  --muted-foreground: oklch(0.68 0.006 260);
-  --accent: oklch(0.27 0.03 255);
-  --accent-foreground: oklch(0.82 0.08 255);
-  --destructive: oklch(0.68 0.17 25);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.68 0.14 255 / 0.6);
+  /* Dark: true black canvas, graphite cards. */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #16181b;
+  --card-foreground: #ffffff;
+  --popover: #1f2226;
+  --popover-foreground: #ffffff;
+  --primary: #1a72f5;
+  --primary-foreground: #ffffff;
+  --secondary: rgb(255 255 255 / 0.08);
+  --secondary-foreground: #ffffff;
+  --muted: rgb(255 255 255 / 0.08);
+  --muted-foreground: #8b949e;
+  --label-tertiary: rgb(255 255 255 / 0.3);
+  --accent: rgb(26 114 245 / 0.18);
+  --accent-foreground: #5b9bff;
+  --destructive: #ff5c5c;
+  --border: rgb(255 255 255 / 0.07);
+  --input: rgb(255 255 255 / 0.1);
+  --ring: rgb(91 155 255 / 0.5);
+  --fill: rgb(255 255 255 / 0.07);
+  --fill-strong: rgb(255 255 255 / 0.12);
+  --success: #5b9bff;
+  --warning: #ffffff;
+  --key: transparent;
+  --material: rgb(0 0 0 / 0.72);
+  --glow: radial-gradient(90% 55% at 50% -12%, rgb(26 114 245 / 0.42), transparent 70%),
+    radial-gradient(60% 40% at 92% 2%, rgb(124 77 255 / 0.3), transparent 70%);
 
-  --board: oklch(0.2 0.003 260);
-  --grid-line: oklch(1 0 0 / 8%);
-  --grid-strong: oklch(1 0 0 / 26%);
-  --cell-related: oklch(0.235 0.012 255);
-  --cell-match: oklch(0.29 0.04 255);
-  --cell-selected: oklch(0.36 0.08 255);
-  --cell-conflict: oklch(0.3 0.06 25);
-  --ink-given: oklch(0.94 0.003 85);
-  --ink-entry: oklch(0.76 0.12 255);
-  --ink-note: oklch(0.66 0.006 260);
-  --ink-error: oklch(0.72 0.16 25);
-  --tint: oklch(0.68 0.14 255);
+  --board: #16181b;
+  --grid-line: rgb(255 255 255 / 0.07);
+  --grid-strong: rgb(255 255 255 / 0.4);
+  --cell-related: rgb(91 155 255 / 0.06);
+  --cell-match: rgb(91 155 255 / 0.15);
+  --cell-selected: rgb(91 155 255 / 0.3);
+  --cell-conflict: rgb(255 92 92 / 0.16);
+  --ink-given: #ffffff;
+  --ink-entry: #6aa5ff;
+  --ink-note: #8b949e;
+  --ink-error: #ff6b6b;
+  --tint: #5b9bff;
 }
 
 @layer base {
@@ -175,15 +203,119 @@
     @apply font-sans;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    font-optical-sizing: auto;
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "tnum" 1;
+    font-size: 1.0625rem;
+    letter-spacing: -0.005em;
+    font-feature-settings: "cv11" 1, "ss01" 1;
     overscroll-behavior-y: none;
   }
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+}
+
+/*
+ * SF type scale. Sizes are in rem so the layout follows the user's text size;
+ * tracking tightens as type grows and opens slightly as it shrinks.
+ */
+@utility type-large-title {
+  font-size: 2.125rem;
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+@utility type-title1 {
+  font-size: 1.75rem;
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+@utility type-title2 {
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+@utility type-title3 {
+  font-size: 1.1875rem;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+@utility type-headline {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+@utility type-body {
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+@utility type-callout {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+@utility type-subhead {
+  font-size: 0.875rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+@utility type-footnote {
+  font-size: 0.8125rem;
+  line-height: 1.38;
+  letter-spacing: 0;
+}
+@utility type-caption {
+  font-size: 0.75rem;
+  line-height: 1.33;
+  letter-spacing: 0.005em;
+}
+
+/* Quiet section label: small, spaced capitals. */
+@utility type-eyebrow {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Display figures: the big numbers that anchor a screen. */
+@utility type-display {
+  font-size: 3.5rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Soft accent glow behind the top of top-level screens. */
+@utility hero-glow {
+  background-image: var(--glow);
+  background-repeat: no-repeat;
+}
+
+/* Translucent chrome: content scrolls underneath it. */
+@utility material-bar {
+  background-color: var(--material);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Press feedback on pointer-down, never on release. */
+@utility pressable {
+  transition:
+    transform 120ms var(--ease-out-soft),
+    opacity 120ms ease,
+    background-color 120ms ease;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
   }
 }
 
@@ -198,6 +330,25 @@
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
+@media (prefers-reduced-transparency: reduce) {
+  .material-bar {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: rgb(11 12 14 / 0.5);
+    --grid-line: rgb(11 12 14 / 0.4);
+  }
+  .dark {
+    --border: rgb(255 255 255 / 0.5);
+    --grid-line: rgb(255 255 255 / 0.35);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -205,5 +356,8 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .pressable:active {
+    transform: none;
   }
 }

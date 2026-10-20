@@ -5,7 +5,7 @@ export function MiniBoard({ givens, values, className }: { givens: string; value
   return (
     <div
       aria-hidden
-      className={cn("grid aspect-square grid-cols-9 overflow-hidden rounded-[6px] border border-grid-strong/70 bg-board", className)}
+      className={cn("grid aspect-square grid-cols-9 overflow-hidden rounded-[8px] bg-board ring-1 ring-grid-strong/60 ring-inset", className)}
     >
       {values.map((v, i) => {
         const r = Math.floor(i / 9);

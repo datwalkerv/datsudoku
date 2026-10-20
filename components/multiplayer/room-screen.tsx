@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, Crown, Loader2, RefreshCw, Share2 } from "lucide-react";
-import { PageHeader, PageShell, SectionLabel } from "@/components/layout/page-header";
+import { Check, Crown, DoorClosed, Loader2, RefreshCw, Share2, Timer, Trophy } from "lucide-react";
+import { EmptyState, PageHeader, PageShell, SectionFooter, SectionLabel } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { useAccount } from "@/components/providers/account-provider";
 import { useOnline } from "@/hooks/use-online";
@@ -118,46 +118,52 @@ export function RoomScreen() {
         backHref="/multiplayer"
         backLabel="Rooms"
         trailing={
-          <Button variant="ghost" size="icon" onClick={() => transport.refresh()} aria-label="Refresh" className="text-tint">
-            <RefreshCw className="size-4" />
+          <Button variant="ghost" size="icon" onClick={() => transport.refresh()} aria-label="Refresh" className="-mr-2">
+            <RefreshCw className="size-5" strokeWidth={2.2} />
           </Button>
         }
       />
 
-      <div className="space-y-8 pt-2">
+      <div className="space-y-10">
         {error ? (
-          <p className="rounded-[14px] border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">{error}</p>
+          <EmptyState icon={DoorClosed} title="Room unavailable">
+            {error}
+          </EmptyState>
         ) : !room ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <>
-            <section className="rounded-[18px] border bg-card p-5">
+            <section className="rounded-[20px] bg-card p-5 shadow-[var(--shadow-card)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[13px] text-muted-foreground">Room code</p>
-                  <p className="font-mono text-2xl tracking-[0.25em]">{room.code}</p>
+                  <p className="type-footnote font-medium text-muted-foreground uppercase">Room code</p>
+                  <p className="font-mono text-[1.75rem] leading-tight font-semibold tracking-[0.2em]">{room.code}</p>
                 </div>
-                <Button variant="secondary" onClick={share} className="rounded-full">
-                  {copied ? <Check className="size-4" /> : <Share2 className="size-4" />}
+                <Button variant="tinted" size="sm" onClick={share}>
+                  {copied ? <Check /> : <Share2 />}
                   {copied ? "Copied" : "Invite"}
                 </Button>
               </div>
               <div className="mt-5">
                 {me?.result ? (
-                  <p className="text-center text-sm text-muted-foreground">
-                    You finished #{me.result.rank} in <span className="font-medium text-foreground tabular-nums">{formatDuration(me.result.timeMs)}</span>
-                  </p>
+                  <div className="flex items-center justify-between rounded-[14px] bg-fill px-4 py-3">
+                    <div>
+                      <p className="type-caption text-muted-foreground">You finished #{me.result.rank}</p>
+                      <p className="type-title1 tabular-nums">{formatDuration(me.result.timeMs)}</p>
+                    </div>
+                    <Trophy className="size-7 text-muted-foreground" strokeWidth={1.4} />
+                  </div>
                 ) : (
-                  <Button onClick={play} disabled={busy !== null || (!online && !localGameId)} className="h-12 w-full rounded-[12px] text-[15px]">
-                    {busy === "join" && <Loader2 className="size-4 animate-spin" />}
-                    {!room.isMember ? "Join and play" : me?.status === "playing" ? "Continue puzzle" : "Start puzzle"}
+                  <Button onClick={play} disabled={busy !== null || (!online && !localGameId)} className="w-full">
+                    {busy === "join" && <Loader2 className="animate-spin" />}
+                    {!room.isMember ? "Join and Play" : me?.status === "playing" ? "Continue Puzzle" : "Start Puzzle"}
                   </Button>
                 )}
                 {room.isHost && finished.length > 0 && (
-                  <Button variant="ghost" onClick={rematch} disabled={busy !== null} className="mt-2 w-full text-tint">
-                    {busy === "rematch" && <Loader2 className="size-4 animate-spin" />} Start rematch (new puzzle)
+                  <Button variant="ghost" size="sm" onClick={rematch} disabled={busy !== null} className="mt-2 w-full">
+                    {busy === "rematch" && <Loader2 className="animate-spin" />} Start Rematch with a New Puzzle
                   </Button>
                 )}
               </div>
@@ -166,11 +172,9 @@ export function RoomScreen() {
             <section>
               <SectionLabel>Results</SectionLabel>
               {finished.length === 0 ? (
-                <p className="rounded-[14px] border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-                  Nobody has finished this round yet.
-                </p>
+                <EmptyState icon={Timer}>Nobody has finished this round yet.</EmptyState>
               ) : (
-                <ol className="overflow-hidden rounded-[14px] border bg-card divide-y">
+                <ol className="overflow-hidden rounded-[12px] bg-card">
                   {finished.map((p) => (
                     <ParticipantRow key={p.name + p.result!.rank} p={p} />
                   ))}
@@ -180,8 +184,8 @@ export function RoomScreen() {
 
             {others.length > 0 && (
               <section>
-                <SectionLabel>Players</SectionLabel>
-                <ul className="overflow-hidden rounded-[14px] border bg-card divide-y">
+                <SectionLabel>Playing</SectionLabel>
+                <ul className="overflow-hidden rounded-[12px] bg-card">
                   {others.map((p, k) => (
                     <ParticipantRow key={p.name + k} p={p} />
                   ))}
@@ -189,10 +193,10 @@ export function RoomScreen() {
               </section>
             )}
 
-            <p className="px-1 text-xs leading-relaxed text-muted-foreground">
+            <SectionFooter>
               Updates every few seconds while this page is open. Each player&apos;s time runs on the server from when they
               start the puzzle. Rooms expire after 7 days of inactivity.
-            </p>
+            </SectionFooter>
           </>
         )}
       </div>
@@ -200,38 +204,47 @@ export function RoomScreen() {
   );
 }
 
+const MEDAL = ["bg-primary text-primary-foreground", "bg-fill-strong text-foreground", "bg-fill text-foreground"];
+
 function ParticipantRow({ p }: { p: RoomParticipantDTO }) {
   return (
-    <li className={cn("flex min-h-12 items-center gap-3 px-4 py-2 text-sm tabular-nums", p.isYou && "bg-accent/60")}>
-      {p.result ? (
-        <span className={cn("w-6 text-muted-foreground", p.result.rank <= 3 && "font-semibold text-foreground")}>{p.result.rank}</span>
-      ) : null}
-      <span className="flex min-w-0 flex-1 items-center gap-1.5">
-        <span className={cn("truncate", p.isYou && "font-medium")}>{p.isYou ? `${p.name} (you)` : p.name}</span>
-        {p.isHost && <Crown className="size-3.5 shrink-0 text-muted-foreground" aria-label="Host" />}
-        {p.result && p.result.hintsUsed > 0 && (
-          <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">Hints</span>
+    <li className={cn("group/row flex h-[52px] items-center gap-3 pl-4 tabular-nums", p.isYou && "bg-accent")}>
+      <span
+        className={cn(
+          "flex size-7 shrink-0 items-center justify-center rounded-full type-footnote font-semibold",
+          p.result ? (p.result.rank <= 3 ? MEDAL[p.result.rank - 1] : "text-muted-foreground") : "bg-fill text-muted-foreground",
         )}
+      >
+        {p.result ? p.result.rank : p.name.charAt(0).toUpperCase()}
       </span>
-      {p.result ? (
-        <>
-          <span className="text-xs text-muted-foreground">{p.result.mistakes} ✕</span>
-          <span className="w-16 text-right font-medium">{formatDuration(p.result.timeMs)}</span>
-        </>
-      ) : (
-        <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          {p.status === "playing" ? (
-            <>
-              <span className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary" aria-label={`${p.progress}% done`}>
-                <span className="block h-full rounded-full bg-tint transition-[width] duration-500" style={{ width: `${p.progress}%` }} />
-              </span>
-              {p.progress}%
-            </>
-          ) : (
-            "Joined"
+      <span className="relative flex min-w-0 flex-1 items-center gap-2 self-stretch pr-4 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:scale-y-50 after:bg-border group-last/row:after:hidden">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className={cn("truncate type-body", p.isYou && "font-semibold")}>{p.isYou ? `${p.name} (you)` : p.name}</span>
+          {p.isHost && <Crown className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.6} aria-label="Host" />}
+          {p.result && p.result.hintsUsed > 0 && (
+            <span className="rounded-full bg-fill px-2 py-0.5 type-caption font-medium text-muted-foreground">Hints</span>
           )}
         </span>
-      )}
+        {p.result ? (
+          <>
+            <span className="type-footnote text-muted-foreground">{p.result.mistakes} ✕</span>
+            <span className="w-14 text-right type-headline">{formatDuration(p.result.timeMs)}</span>
+          </>
+        ) : (
+          <span className="flex items-center gap-2 type-footnote text-muted-foreground">
+            {p.status === "playing" ? (
+              <>
+                <span className="h-1.5 w-16 overflow-hidden rounded-full bg-fill" aria-label={`${p.progress}% done`}>
+                  <span className="block h-full rounded-full bg-tint transition-[width] duration-500" style={{ width: `${p.progress}%` }} />
+                </span>
+                {p.progress}%
+              </>
+            ) : (
+              "Joined"
+            )}
+          </span>
+        )}
+      </span>
     </li>
   );
 }

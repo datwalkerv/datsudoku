@@ -126,7 +126,7 @@ test.describe("daily challenge", () => {
   test("gives everyone the same puzzle and records one verified result", async ({ page, browser }) => {
     await page.goto("/daily");
     await waitForApp(page);
-    await page.getByRole("button", { name: /Play today's puzzle/ }).click();
+    await page.getByRole("button", { name: /Play today's puzzle/i }).click();
     await page.waitForURL(/\/play\?id=/);
     const givens = await readGivens(page);
 
@@ -134,7 +134,7 @@ test.describe("daily challenge", () => {
     const otherPage = await other.newPage();
     await otherPage.goto("/daily");
     await waitForApp(otherPage);
-    await otherPage.getByRole("button", { name: /Play today's puzzle/ }).click();
+    await otherPage.getByRole("button", { name: /Play today's puzzle/i }).click();
     await otherPage.waitForURL(/\/play\?id=/);
     expect(await readGivens(otherPage)).toBe(givens);
     await other.close();
@@ -143,7 +143,7 @@ test.describe("daily challenge", () => {
     await expect(page.getByRole("dialog").getByText("Verified by server")).toBeVisible({ timeout: 15_000 });
     await page.goto("/daily");
     await expect(page.getByText(/Ranked on today's leaderboard|Sign in to appear|could not be verified/)).toBeVisible();
-    await expect(page.getByRole("button", { name: /Play today's puzzle/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Play today's puzzle/i })).toHaveCount(0);
   });
 });
 
@@ -155,7 +155,7 @@ test.describe("multiplayer", () => {
     await page.getByRole("button", { name: "Create room" }).click();
     await page.waitForURL(/\/multiplayer\/[0-9A-Z]{6}$/);
     const roomUrl = page.url();
-    await page.getByRole("button", { name: /Start puzzle|Continue puzzle/ }).click();
+    await page.getByRole("button", { name: /Start puzzle|Continue puzzle/i }).click();
     await page.waitForURL(/\/play\?id=/);
     const hostGivens = await readGivens(page);
 
@@ -193,8 +193,10 @@ test.describe("offline", () => {
     const value = solutionFor(givens)[cell];
     await context.setOffline(true);
     // Reopened games resume paused.
-    const resume = page.getByRole("button", { name: "Resume", exact: true });
-    await resume.waitFor({ timeout: 3_000 }).then(() => resume.click(), () => {});
+    const timer = page.getByRole("button", { name: /^(Pause|Resume) timer$/ });
+    await expect(timer).toBeEnabled();
+    if ((await timer.getAttribute("aria-label")) === "Resume timer") await timer.click();
+    await expect(timer).toHaveAttribute("aria-label", "Pause timer");
     await page.locator(`[data-cell="${cell}"]`).click();
     await page.keyboard.press(String(value));
     await expect(page.locator(`[data-cell="${cell}"]`)).toHaveAttribute("aria-label", new RegExp(`, ${value}$`));

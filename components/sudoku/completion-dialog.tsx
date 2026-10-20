@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { BadgeCheck, CloudOff, Loader2 } from "lucide-react";
+import { BadgeCheck, Check, CloudOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { formatDuration } from "@/lib/format";
@@ -33,48 +33,48 @@ export function CompletionDialog({ open, onOpenChange, game, state, result, sync
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm gap-0 overflow-hidden p-0">
-        <div className="px-6 pt-8 pb-6 text-center">
+        <div className="px-6 pt-9 pb-5 text-center">
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 380, damping: 26 }}
-            className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-accent text-tint"
+            transition={{ type: "spring", bounce: 0.3, duration: 0.5, delay: 0.08 }}
+            className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground"
           >
-            <BadgeCheck className="size-6" strokeWidth={1.75} />
+            <Check className="size-7" strokeWidth={2.2} />
           </motion.div>
-          <DialogTitle className="text-xl font-semibold tracking-tight">Solved</DialogTitle>
-          <DialogDescription className="mt-1 text-sm text-muted-foreground">
+          <DialogTitle className="type-title1">Solved!</DialogTitle>
+          <DialogDescription className="mt-1 type-subhead text-muted-foreground">
             {DIFFICULTY_LABEL[game.difficulty]} {game.mode === "daily" ? "Daily Challenge" : game.mode === "room" ? "room puzzle" : "puzzle"}
           </DialogDescription>
 
-          <dl className="mt-6 grid grid-cols-3 divide-x rounded-xl border bg-secondary/40 py-3">
+          <dl className="mt-6 grid grid-cols-3 divide-x divide-border rounded-[14px] bg-fill py-3.5">
             <Stat label="Time" value={formatDuration(time)} />
             <Stat label="Mistakes" value={String(mistakes)} />
             <Stat label="Hints" value={String(hints)} />
           </dl>
 
-          <div className="mt-4 min-h-10 text-[13px]" aria-live="polite">
+          <div className="mt-4 min-h-10 type-footnote" aria-live="polite">
             <VerificationLine game={game} result={result} syncStatus={syncStatus} onRetry={onRetry} />
           </div>
         </div>
 
-        <div className="grid gap-2 border-t bg-secondary/30 p-4">
+        <div className="grid gap-1 px-5 pb-5">
           {game.mode === "classic" && (
-            <Button className="h-11 rounded-xl" onClick={onNewGame}>
+            <Button onClick={onNewGame}>
               New {DIFFICULTY_LABEL[game.difficulty]} game
             </Button>
           )}
           {game.mode === "daily" && (
-            <Button asChild className="h-11 rounded-xl">
+            <Button asChild>
               <Link href="/leaderboard?scope=daily">Today&apos;s leaderboard</Link>
             </Button>
           )}
           {game.mode === "room" && game.roomCode && (
-            <Button asChild className="h-11 rounded-xl">
+            <Button asChild>
               <Link href={`/multiplayer/${game.roomCode}`}>Room results</Link>
             </Button>
           )}
-          <Button asChild variant="ghost" className="h-10 rounded-xl">
+          <Button asChild variant="ghost">
             <Link href="/">Home</Link>
           </Button>
         </div>
@@ -86,8 +86,8 @@ export function CompletionDialog({ open, onOpenChange, game, state, result, sync
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <dt className="text-[11px] text-muted-foreground uppercase tracking-wide">{label}</dt>
-      <dd className="text-lg font-medium tabular-nums">{value}</dd>
+      <dt className="type-caption text-muted-foreground">{label}</dt>
+      <dd className="type-title3 tabular-nums">{value}</dd>
     </div>
   );
 }

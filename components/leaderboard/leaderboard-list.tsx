@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trophy } from "lucide-react";
+import { EmptyState } from "@/components/layout/page-header";
 import { api, ApiError } from "@/lib/client/api";
 import type { LeaderboardEntryDTO, LeaderboardPageDTO } from "@/lib/leaderboard/types";
 import { formatDuration } from "@/lib/format";
@@ -85,12 +86,12 @@ export function LeaderboardList({
   if (error && !entries) return <Empty>{error}</Empty>;
   if (!entries) {
     return (
-      <div className="space-y-px overflow-hidden rounded-[14px] border bg-card" aria-busy="true">
+      <div className="overflow-hidden rounded-[12px] bg-card" aria-busy="true">
         {Array.from({ length: compact ? 3 : 6 }, (_, k) => (
-          <div key={k} className="flex h-12 items-center gap-3 px-4">
-            <Skeleton className="h-4 w-6" />
-            <Skeleton className="h-4 flex-1" />
-            <Skeleton className="h-4 w-12" />
+          <div key={k} className="flex h-[52px] items-center gap-3 px-4">
+            <Skeleton className="size-7 rounded-full" />
+            <Skeleton className="h-4 flex-1 rounded-full" />
+            <Skeleton className="h-4 w-12 rounded-full" />
           </div>
         ))}
       </div>
@@ -101,51 +102,70 @@ export function LeaderboardList({
   const youVisible = entries.some((e) => e.isYou);
   return (
     <div className="space-y-3">
-      <ol className="overflow-hidden rounded-[14px] border bg-card divide-y divide-border">
+      <ol className="overflow-hidden rounded-[12px] bg-card">
         {entries.map((e) => (
           <Row key={`${e.rank}-${e.completedAt}`} entry={e} />
         ))}
       </ol>
       {you && !youVisible && (
-        <div className="flex h-12 items-center gap-3 rounded-[14px] border border-tint/30 bg-accent px-4 text-sm tabular-nums">
-          <span className="w-8 font-medium text-tint">#{you.rank}</span>
-          <span className="flex-1 font-medium">You</span>
-          <span className="text-muted-foreground">{you.mistakes} ✕</span>
-          <span className="w-16 text-right font-medium">{formatDuration(you.timeMs)}</span>
+        <div className="flex h-[52px] items-center gap-3 rounded-[12px] bg-accent px-4 tabular-nums">
+          <span className="w-7 text-center type-headline text-tint">{you.rank}</span>
+          <span className="flex-1 type-headline">You</span>
+          <span className="type-footnote text-muted-foreground">{you.mistakes} mistakes</span>
+          <span className="w-14 text-right type-headline">{formatDuration(you.timeMs)}</span>
         </div>
       )}
       {cursor && (
-        <Button variant="ghost" className="w-full text-tint" onClick={more} disabled={loadingMore}>
-          {loadingMore && <Loader2 className="size-4 animate-spin" />} Show more
+        <Button variant="ghost" size="sm" className="w-full" onClick={more} disabled={loadingMore}>
+          {loadingMore && <Loader2 className="animate-spin" />} Show more
         </Button>
       )}
     </div>
   );
 }
 
+/** The podium is marked by weight, not color. */
+const MEDAL = ["bg-primary text-primary-foreground", "bg-fill-strong text-foreground", "bg-fill text-foreground"];
+
 function Row({ entry: e }: { entry: LeaderboardEntryDTO }) {
   return (
-    <li className={cn("flex h-12 items-center gap-3 px-4 text-sm tabular-nums", e.isYou && "bg-accent/60")}>
-      <span className={cn("w-8 text-muted-foreground", e.rank <= 3 && "font-semibold text-foreground")}>{e.rank}</span>
-      <span className="flex min-w-0 flex-1 items-center gap-1.5">
-        <span className={cn("truncate", e.isYou && "font-medium")}>{e.isYou ? `${e.name} (you)` : e.name}</span>
-        {e.isGuest && <Tag>Guest</Tag>}
-        {!e.ranked && e.hintsUsed > 0 && <Tag>Hints</Tag>}
+    <li
+      className={cn(
+        "group/row flex h-[52px] items-center gap-3 pl-4 tabular-nums",
+        e.isYou && "bg-accent",
+      )}
+    >
+      <span
+        className={cn(
+          "flex size-7 shrink-0 items-center justify-center rounded-full type-footnote font-semibold",
+          e.rank <= 3 ? MEDAL[e.rank - 1] : "text-muted-foreground",
+        )}
+      >
+        {e.rank}
       </span>
-      <span className="text-xs text-muted-foreground" title="Mistakes">
-        {e.mistakes} ✕
+      <span className="relative flex min-w-0 flex-1 items-center gap-2 self-stretch pr-4 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:scale-y-50 after:bg-border group-last/row:after:hidden">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className={cn("truncate type-body", e.isYou && "font-semibold")}>{e.isYou ? `${e.name} (you)` : e.name}</span>
+          {e.isGuest && <Tag>Guest</Tag>}
+          {!e.ranked && e.hintsUsed > 0 && <Tag>Hints</Tag>}
+        </span>
+        <span className="type-footnote text-muted-foreground" title="Mistakes">
+          {e.mistakes} ✕
+        </span>
+        <span className="w-14 text-right type-headline">{formatDuration(e.timeMs)}</span>
       </span>
-      <span className="w-16 text-right font-medium">{formatDuration(e.timeMs)}</span>
     </li>
   );
 }
 
 function Tag({ children }: { children: React.ReactNode }) {
-  return <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">{children}</span>;
+  return <span className="shrink-0 rounded-full bg-fill px-2 py-0.5 type-caption font-medium text-muted-foreground">{children}</span>;
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-[14px] border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">{children}</p>
+    <EmptyState icon={Trophy}>
+      {children}
+    </EmptyState>
   );
 }

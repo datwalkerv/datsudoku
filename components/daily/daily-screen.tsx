@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { CalendarDays, Flame, Loader2 } from "lucide-react";
-import { PageHeader, PageShell, SectionLabel } from "@/components/layout/page-header";
+import { CalendarDays, Clock3, CloudOff, Flame, Loader2, Timer, Users } from "lucide-react";
+import { EmptyState, Group, ListRow, PageHeader, PageShell, SectionLabel } from "@/components/layout/page-header";
 import { LeaderboardList } from "@/components/leaderboard/leaderboard-list";
 import { Button } from "@/components/ui/button";
 import { useAccount } from "@/components/providers/account-provider";
@@ -66,55 +66,63 @@ export function DailyScreen() {
 
   return (
     <PageShell>
-      <PageHeader title="Daily Challenge" />
-      <div className="space-y-8 pt-2">
-        <section className="rounded-[18px] border bg-card p-6 text-center">
-          <span className="mx-auto mb-3 flex size-11 items-center justify-center rounded-full bg-accent text-tint">
-            <CalendarDays className="size-5" strokeWidth={1.75} />
-          </span>
+      <PageHeader title="Daily Challenge" backHref={null} />
+      <div className="space-y-10">
+        <section className="rounded-[20px] bg-card p-5 shadow-[var(--shadow-card)]">
           {!online ? (
-            <p className="text-sm text-muted-foreground">The Daily Challenge needs a connection.</p>
+            <EmptyState icon={CloudOff} title="You're offline">
+              The Daily Challenge needs a connection.
+            </EmptyState>
           ) : error ? (
-            <p className="text-sm text-muted-foreground">Couldn&apos;t load today&apos;s challenge.</p>
+            <EmptyState icon={CalendarDays} title="Couldn't load today's challenge">
+              Check your connection and try again.
+            </EmptyState>
           ) : !status ? (
-            <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" />
+            <div className="flex h-40 items-center justify-center">
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            </div>
           ) : (
             <>
-              <h2 className="text-xl font-semibold tracking-tight">
-                {formatDateKey(status.dateKey, { weekday: "long", month: "long", day: "numeric" })}
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {DIFFICULTY_LABEL[status.difficulty]} · {status.participants}{" "}
-                {status.participants === 1 ? "player" : "players"} solved
-              </p>
+              <div className="flex items-center gap-4">
+                <CalendarTile dateKey={status.dateKey} />
+                <div className="min-w-0">
+                  <h2 className="type-title2">
+                    {formatDateKey(status.dateKey, { weekday: "long" })}
+                  </h2>
+                  <p className="type-subhead text-muted-foreground">
+                    {DIFFICULTY_LABEL[status.difficulty]} · {status.participants}{" "}
+                    {status.participants === 1 ? "player" : "players"} solved
+                  </p>
+                </div>
+              </div>
               {status.result ? (
-                <div className="mt-5 space-y-1">
-                  <p className="text-3xl font-medium tabular-nums">{formatDuration(status.result.timeMs)}</p>
-                  <p className="text-[13px] text-muted-foreground">
+                <div className="mt-5 flex items-center justify-between rounded-[14px] bg-fill px-4 py-3">
+                  <div>
+                    <p className="type-caption text-muted-foreground">Your time</p>
+                    <p className="type-title1 tabular-nums">{formatDuration(status.result.timeMs)}</p>
+                  </div>
+                  <p className="max-w-40 text-right type-footnote text-muted-foreground">
                     {status.result.ranked
                       ? "Ranked on today's leaderboard"
                       : (INELIGIBLE_LABEL[status.result.reason as IneligibleReason] ?? "Not ranked")}
                   </p>
                 </div>
               ) : (
-                <Button onClick={play} disabled={busy} className="mt-5 h-12 w-full rounded-[12px] text-[15px]">
-                  {busy && <Loader2 className="size-4 animate-spin" />}
-                  {status.game ? "Continue today's puzzle" : "Play today's puzzle"}
+                <Button onClick={play} disabled={busy} className="mt-5 w-full">
+                  {busy && <Loader2 className="animate-spin" />}
+                  {status.game ? "Continue Today's Puzzle" : "Play Today's Puzzle"}
                 </Button>
               )}
-              <div className="mt-5 flex items-center justify-center gap-4 text-[13px] text-muted-foreground tabular-nums">
-                <span className="inline-flex items-center gap-1">
-                  <Flame className="size-4 text-orange-500" /> {status.streak} day streak
-                </span>
-                {now !== null && (
-                  <span>
-                    Next in {hours}h {minutes}m
-                  </span>
-                )}
-              </div>
             </>
           )}
         </section>
+
+        {status && (
+          <div className="grid grid-cols-2 gap-3">
+            <Tile label="Streak" value={`${status.streak}`} unit={status.streak === 1 ? "day" : "days"} icon={<Flame className="size-3.5" strokeWidth={1.6} />} />
+            <Tile label="Next puzzle" value={now === null ? "–" : `${hours}h ${minutes}m`} icon={<Clock3 className="size-3.5" strokeWidth={1.6} />} />
+          </div>
+        )}
 
         <section>
           <SectionLabel>Today&apos;s leaderboard</SectionLabel>
@@ -127,16 +135,43 @@ export function DailyScreen() {
           />
         </section>
 
-        <section className="space-y-2 px-1 text-[13px] leading-relaxed text-muted-foreground">
-          <SectionLabel className="px-0">Rules</SectionLabel>
-          <p>Everyone gets the same puzzle for each UTC day, and you get one attempt — reopening resumes it.</p>
-          <p>
-            Your time is measured by the server from when you first open the puzzle. Pausing hides the board, but the
-            clock keeps running.
-          </p>
-          <p>Completing the puzzle on its day extends your streak. Hints are allowed but make the result unranked.</p>
+        <section>
+          <SectionLabel>How it works</SectionLabel>
+          <Group>
+            <ListRow icon={Users} title="One puzzle for everyone" detail="New each UTC day, one attempt" />
+            <ListRow icon={Timer} title="Timed by the server" detail="The clock keeps running while paused" />
+            <ListRow icon={Flame} title="Keep your streak" detail="Solve it on its day; hints make it unranked" />
+          </Group>
         </section>
       </div>
     </PageShell>
+  );
+}
+
+/** An Apple Calendar–style date tile. */
+function CalendarTile({ dateKey }: { dateKey: string }) {
+  return (
+    <div className="flex w-16 shrink-0 flex-col overflow-hidden rounded-[14px] bg-background text-center shadow-[var(--shadow-card)]">
+      <span className="bg-primary py-0.5 type-eyebrow text-primary-foreground">
+        {formatDateKey(dateKey, { weekday: "short" })}
+      </span>
+      <span className="py-1 text-[1.9rem] leading-tight font-semibold tabular-nums">
+        {formatDateKey(dateKey, { day: "numeric" })}
+      </span>
+    </div>
+  );
+}
+
+function Tile({ label, value, unit, icon }: { label: string; value: string; unit?: string; icon: React.ReactNode }) {
+  return (
+    <div className="rounded-[16px] bg-card p-4">
+      <p className="flex items-center gap-1.5 type-footnote font-medium text-muted-foreground">
+        {icon} {label}
+      </p>
+      <p className="mt-1 type-title2 tabular-nums">
+        {value}
+        {unit && <span className="ml-1 type-subhead font-normal text-muted-foreground">{unit}</span>}
+      </p>
+    </div>
   );
 }
