@@ -2,10 +2,10 @@ import { expect, type Page } from "@playwright/test";
 import { parseGrid } from "../../lib/sudoku/board";
 import { solve } from "../../lib/sudoku/solver";
 
-/** Opens Home, waits for the guest session, and starts a Classic game. */
+/** Opens Home and starts a Classic game (which creates the guest account). */
 export async function startClassic(page: Page, difficulty = "Easy") {
   await page.goto("/");
-  await waitForSession(page);
+  await waitForApp(page);
   await page.getByRole("radio", { name: difficulty }).click();
   await page.getByRole("button", { name: `Start ${difficulty} game` }).click();
   await page.waitForURL(/\/play\?id=/);
@@ -13,10 +13,9 @@ export async function startClassic(page: Page, difficulty = "Easy") {
   return new URL(page.url()).searchParams.get("id")!;
 }
 
-export async function waitForSession(page: Page) {
-  await expect
-    .poll(async () => (await page.request.get("/api/auth/get-session")).json(), { timeout: 15_000 })
-    .not.toBeNull();
+/** Waits until the page is hydrated and its initial requests have settled. */
+export async function waitForApp(page: Page) {
+  await page.waitForLoadState("networkidle");
 }
 
 /** Reads the givens from the board's accessible labels. */

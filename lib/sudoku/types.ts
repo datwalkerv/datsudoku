@@ -2,8 +2,7 @@ export const DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 
 /** Difficulties offered by the YouDoSudoku API. Expert is generated internally. */
-export const EXTERNAL_DIFFICULTIES = ["easy", "medium", "hard"] as const;
-export type ExternalDifficulty = (typeof EXTERNAL_DIFFICULTIES)[number];
+export type ExternalDifficulty = Exclude<Difficulty, "expert">;
 
 export const GAME_MODES = ["classic", "daily", "room"] as const;
 export type GameMode = (typeof GAME_MODES)[number];
@@ -29,10 +28,6 @@ export const MoveKind = {
   Hint: 2,
 } as const;
 export type MoveKind = (typeof MoveKind)[keyof typeof MoveKind];
-
-export function isDifficulty(value: unknown): value is Difficulty {
-  return typeof value === "string" && (DIFFICULTIES as readonly string[]).includes(value);
-}
 
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   easy: "Easy",

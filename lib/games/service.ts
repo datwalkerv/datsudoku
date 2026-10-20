@@ -17,7 +17,7 @@ import { respectsGivens } from "@/lib/sudoku/validation";
 import type { Difficulty, GameMode } from "@/lib/sudoku/types";
 import { utcDateKey } from "@/lib/daily/date";
 import { replayMoves } from "./replay";
-import { ineligibility, rankedTime } from "./rules";
+import { ineligibility } from "./rules";
 import { recordStats, updatePersonalBest } from "./records";
 import type { GameDTO, GameSummaryDTO, ResultDTO } from "./types";
 import type { CompleteGameInput, SaveGameInput } from "@/lib/validation/schemas";
@@ -235,7 +235,7 @@ export async function completeGame(user: SessionUser, id: string, input: Complet
   const now = new Date();
   const wallMs = now.getTime() - game.startedAt.getTime();
   const clientMs = input.elapsedSeconds * 1000;
-  const timeMs = rankedTime(game.mode, wallMs, clientMs);
+  const timeMs = Math.max(0, wallMs);
   const hints = Math.max(replay.hints, game.serverHints);
   const mistakes = replay.consistent ? replay.mistakes : game.mistakes;
   const completedDateKey = utcDateKey(now);

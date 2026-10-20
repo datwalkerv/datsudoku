@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readGivens, solutionFor, solveOnBoard, startClassic, waitForSession } from "./helpers";
+import { readGivens, solutionFor, solveOnBoard, startClassic, waitForApp } from "./helpers";
 
 test.describe("guest play", () => {
   test("starts immediately, saves locally and to the server, and resumes", async ({ page }) => {
@@ -58,6 +58,12 @@ test.describe("guest play", () => {
 });
 
 test.describe("accounts", () => {
+  test("browsing alone does not create an account", async ({ page }) => {
+    await page.goto("/");
+    await waitForApp(page);
+    expect(await (await page.request.get("/api/auth/get-session")).json()).toBeNull();
+  });
+
   test("registers, signs out and signs back in, keeping guest games", async ({ page }) => {
     const id = await startClassic(page);
     const email = `e2e-${Date.now()}@example.test`;
@@ -69,6 +75,8 @@ test.describe("accounts", () => {
     await page.getByRole("button", { name: "Create account" }).click();
     await page.waitForURL("/");
     await expect(page.getByText("Welcome back, Ada")).toBeVisible();
+    // The moved game is still offered under the new account.
+    await expect(page.getByRole("link", { name: /Classic/ }).first()).toHaveAttribute("href", `/play?id=${id}`);
 
     // The guest game now belongs to the account.
     expect((await page.request.get(`/api/games/${id}`)).status()).toBe(200);
@@ -91,7 +99,7 @@ test.describe("accounts", () => {
 
   test("Google sign-in redirects to Google with the configured client and callback", async ({ page }) => {
     await page.goto("/sign-in");
-    await waitForSession(page);
+    await waitForApp(page);
     const google = page.waitForRequest((r) => r.url().startsWith("https://accounts.google.com/"));
     await page.route("https://accounts.google.com/**", (route) => route.abort());
     await page.getByRole("button", { name: "Continue with Google" }).click();
@@ -104,8 +112,7 @@ test.describe("accounts", () => {
     const id = await startClassic(page);
     const other = await browser.newContext();
     const otherPage = await other.newPage();
-    await otherPage.goto("/");
-    await waitForSession(otherPage);
+    await startClassic(otherPage); // a second signed-in guest
     expect((await otherPage.request.get(`/api/games/${id}`)).status()).toBe(404);
     const save = await otherPage.request.put(`/api/games/${id}`, {
       data: { baseVersion: 0, board: "0".repeat(81), notes: Array(81).fill(0), moves: [], mistakes: 0, hintsUsed: 0, elapsedSeconds: 1 },
@@ -118,7 +125,7 @@ test.describe("accounts", () => {
 test.describe("daily challenge", () => {
   test("gives everyone the same puzzle and records one verified result", async ({ page, browser }) => {
     await page.goto("/daily");
-    await waitForSession(page);
+    await waitForApp(page);
     await page.getByRole("button", { name: /Play today's puzzle/ }).click();
     await page.waitForURL(/\/play\?id=/);
     const givens = await readGivens(page);
@@ -126,7 +133,7 @@ test.describe("daily challenge", () => {
     const other = await browser.newContext();
     const otherPage = await other.newPage();
     await otherPage.goto("/daily");
-    await waitForSession(otherPage);
+    await waitForApp(otherPage);
     await otherPage.getByRole("button", { name: /Play today's puzzle/ }).click();
     await otherPage.waitForURL(/\/play\?id=/);
     expect(await readGivens(otherPage)).toBe(givens);
@@ -143,7 +150,7 @@ test.describe("daily challenge", () => {
 test.describe("multiplayer", () => {
   test("players joining by link get the same seeded puzzle and see each other", async ({ page, browser }) => {
     await page.goto("/multiplayer");
-    await waitForSession(page);
+    await waitForApp(page);
     await page.getByRole("radio", { name: "Easy" }).click();
     await page.getByRole("button", { name: "Create room" }).click();
     await page.waitForURL(/\/multiplayer\/[0-9A-Z]{6}$/);
@@ -155,7 +162,7 @@ test.describe("multiplayer", () => {
     const guestCtx = await browser.newContext();
     const guest = await guestCtx.newPage();
     await guest.goto(roomUrl);
-    await waitForSession(guest);
+    await waitForApp(guest);
     await guest.getByRole("button", { name: "Join and play" }).click();
     await guest.waitForURL(/\/play\?id=/);
     expect(await readGivens(guest)).toBe(hostGivens);

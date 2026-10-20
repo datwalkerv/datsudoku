@@ -21,7 +21,7 @@ type MyRoom = Awaited<ReturnType<typeof api.myRooms>>["rooms"][number];
 export function LobbyScreen() {
   const router = useRouter();
   const online = useOnline();
-  const { account, pending } = useAccount();
+  const { account, pending, ensureAccount } = useAccount();
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [code, setCode] = useState("");
   const [creating, setCreating] = useState(false);
@@ -42,8 +42,9 @@ export function LobbyScreen() {
   const create = async () => {
     setCreating(true);
     try {
+      const owner = await ensureAccount();
       const { code: newCode, game } = await api.createRoom(difficulty);
-      await adoptServerGame(game, account?.id ?? null);
+      await adoptServerGame(game, owner?.id ?? null);
       router.push(`/multiplayer/${newCode}`);
     } catch (error) {
       toast.error(error instanceof ApiError && error.status === 0 ? "You're offline." : "Couldn't create a room.");

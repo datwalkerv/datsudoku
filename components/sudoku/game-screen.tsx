@@ -40,7 +40,7 @@ import { useAccount } from "@/components/providers/account-provider";
 export function GameScreen({ game }: { game: LocalGame }) {
   const router = useRouter();
   const settings = useSettings();
-  const { account } = useAccount();
+  const { ensureAccount } = useAccount();
   const reduceMotion = useReducedMotion();
   const { state, actions, hint, result, syncStatus, isRanked, retryVerification } = useGame(game);
   const [hintConfirm, setHintConfirm] = useState(false);
@@ -182,7 +182,8 @@ export function GameScreen({ game }: { game: LocalGame }) {
 
   const newGame = async () => {
     try {
-      const started = await startClassic(game.difficulty, account?.id ?? null);
+      const owner = await ensureAccount();
+      const started = await startClassic(game.difficulty, owner?.id ?? null);
       if (started.offline) toast("Offline game — progress stays on this device.");
       router.replace(`/play?id=${encodeURIComponent(started.id)}`);
     } catch {
@@ -267,7 +268,7 @@ export function GameScreen({ game }: { game: LocalGame }) {
               rippleOrigin={completed && !reduceMotion ? rippleOrigin : null}
             />
             <AnimatePresence>
-              {paused && <PauseOverlay onResume={actions.resume} ranked={isRanked} state={state} />}
+              {paused && <PauseOverlay onResume={actions.resume} ranked={game.serverBacked} state={state} />}
             </AnimatePresence>
           </div>
         </div>

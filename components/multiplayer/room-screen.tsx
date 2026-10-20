@@ -22,7 +22,7 @@ export function RoomScreen() {
   const code = String(rawCode).toUpperCase();
   const router = useRouter();
   const online = useOnline();
-  const { account, pending } = useAccount();
+  const { pending, ensureAccount } = useAccount();
   const transport = useMemo(() => createPollingTransport(), []);
   const [room, setRoom] = useState<RoomDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,9 +62,10 @@ export function RoomScreen() {
     }
     setBusy("join");
     try {
+      const owner = await ensureAccount();
       const { game, room: next } = await api.joinRoom(code);
       setRoom(next);
-      const id = await adoptServerGame(game, account?.id ?? null);
+      const id = await adoptServerGame(game, owner?.id ?? null);
       router.push(`/play?id=${encodeURIComponent(id)}`);
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : "Couldn't join the room.");

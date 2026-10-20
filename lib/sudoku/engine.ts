@@ -1,4 +1,4 @@
-import { CELLS, PEERS, bit, boxOf, candidatesMask, colOf, parseGrid, rowOf, serializeGrid } from "./board";
+import { CELLS, PEERS, bit, boxOf, candidatesMask, colOf, parseGrid, rowOf } from "./board";
 import { findConflicts, isSolved } from "./validation";
 import { MoveKind, type Grid, type Move } from "./types";
 
@@ -370,8 +370,4 @@ export function digitCounts(values: Grid): number[] {
   const counts = new Array<number>(10).fill(0);
   for (const v of values) counts[v]++;
   return counts;
-}
-
-export function boardString(state: GameState): string {
-  return serializeGrid(state.values);
 }

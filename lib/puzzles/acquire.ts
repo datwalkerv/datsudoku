@@ -171,7 +171,3 @@ export async function acquirePuzzle(options: AcquireOptions): Promise<AcquiredPu
 export async function findPuzzleBySeed(seed: string): Promise<PuzzleDoc | null> {
   return collections.puzzles().findOne({ seed, validationStatus: "valid" });
 }
-
-export async function findPuzzleById(id: ObjectId): Promise<PuzzleDoc | null> {
-  return collections.puzzles().findOne({ _id: id });
-}

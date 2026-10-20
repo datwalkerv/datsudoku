@@ -20,7 +20,7 @@ import { INELIGIBLE_LABEL, type IneligibleReason } from "@/lib/games/rules";
 export function DailyScreen() {
   const router = useRouter();
   const online = useOnline();
-  const { account, pending } = useAccount();
+  const { account, pending, ensureAccount } = useAccount();
   const [status, setStatus] = useState<DailyStatus | null>(null);
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -51,7 +51,8 @@ export function DailyScreen() {
   const play = async () => {
     setBusy(true);
     try {
-      const id = await startDaily(account?.id ?? null);
+      const owner = await ensureAccount();
+      const id = await startDaily(owner?.id ?? null);
       router.push(`/play?id=${encodeURIComponent(id)}`);
     } catch {
       toast.error("Couldn't load today's challenge.");

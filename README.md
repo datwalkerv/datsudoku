@@ -28,7 +28,7 @@ A calm, Apple‑inspired Sudoku PWA: Classic play, a shared Daily Challenge and 
 - The solution is never sent to the browser.
 - Completions are verified on the server against the stored solution. The client's move log is replayed to recompute mistakes and hints.
 - Only one result is stored per game, so repeated submissions return the same result.
-- Daily and room times use server timestamps. Classic time is the player's active time, capped by server wall‑clock.
+- Ranked times in every mode use server timestamps (start → verified completion). The browser's timer is only for display, and pausing doesn't stop the ranked clock.
 - Only registered, hint‑free games are ranked.
 
 **Sync** (`lib/client/sync.ts`):

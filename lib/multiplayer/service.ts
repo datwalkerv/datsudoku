@@ -121,6 +121,7 @@ export async function startRematch(user: SessionUser, code: string, expectedRoun
   const room = await findRoom(code);
   if (room.hostUserId !== user.id) throw new HttpError(403, "not_host", "Only the host can start a rematch");
   if (room.currentRound !== expectedRound) return room; // someone already advanced it
+  // shortcut: a double-tapped rematch fetches two puzzles and keeps one; add a lock if API quota gets tight.
   const round = await newRound(expectedRound + 1, room.settings.difficulty);
   const updated = await collections.rooms().findOneAndUpdate(
     { _id: room._id, currentRound: expectedRound },

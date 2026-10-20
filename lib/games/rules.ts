@@ -6,9 +6,9 @@ import { addDays } from "@/lib/daily/date";
  *
  * - Only registered users are ranked; guests still get verified results.
  * - Any hint makes a game unranked (it still counts for stats and streaks).
- * - Daily and room times are server wall-clock: created → verified completion.
- *   Pausing hides the board but does not stop the ranked clock.
- * - Classic time is the client's active play time, capped by wall-clock.
+ * - Ranked time is server wall-clock in every mode: created → verified
+ *   completion. The browser's timer is never trusted. Pausing hides the board
+ *   but does not stop the ranked clock.
  * - A result needs a move log that reproduces the submitted board.
  * - Times faster than MIN_MS_PER_EMPTY_CELL per empty cell are implausible.
  * - Daily results are ranked only when completed on the challenge's UTC date.
@@ -34,11 +34,6 @@ export interface EligibilityInput {
   emptyCells: number;
   dailyKey: string | null;
   completedDateKey: string;
-}
-
-export function rankedTime(mode: GameMode, wallMs: number, clientMs: number): number {
-  if (mode === "classic") return Math.max(0, Math.min(clientMs, wallMs));
-  return Math.max(0, wallMs);
 }
 
 /** Returns the first reason a result is unranked, or null when it is ranked. */

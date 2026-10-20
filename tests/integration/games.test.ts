@@ -110,7 +110,9 @@ describe("classic games", () => {
     expect(new Set(results.map((r) => r.id)).size).toBe(1);
     expect(results[0].mistakes).toBe(1);
     expect(results[0].ranked).toBe(true);
-    expect(results[0].timeMs).toBe(300_000); // classic: client time, capped by wall-clock
+    // Server wall-clock (aged 10 min), not the client's claimed 300 s.
+    expect(results[0].timeMs).toBeGreaterThanOrEqual(10 * 60_000);
+    expect(results[0].timeMs).toBeLessThan(11 * 60_000);
     expect(await collections.results().countDocuments({ gameId: new ObjectId(game.id) })).toBe(1);
 
     const after = await getGameWithResult(u.id, game.id);
@@ -123,10 +125,10 @@ describe("classic games", () => {
     );
   });
 
-  it("caps classic time by server wall-clock and flags implausible times", async () => {
+  it("ignores the client's claimed time and flags implausible times", async () => {
     const u = user();
     const { game } = await startClassicGame(u, "easy");
-    // Started moments ago on the server: the client's claimed 300s is capped to ~0.
+    // Started moments ago on the server: the client's claimed 300 s is ignored.
     const r = await completeGame(u, game.id, solution(game));
     expect(r.timeMs).toBeLessThan(5_000);
     expect(r.ranked).toBe(false);
@@ -281,10 +283,11 @@ describe("leaderboards", () => {
   it("orders deterministically, paginates and keeps one personal best per user", async () => {
     const players = Array.from({ length: 7 }, () => user());
     for (const [k, p] of players.entries()) {
+      // Ranked time is server wall-clock, so each game "started" a different time ago.
       for (const seconds of [600 + k * 10, 900]) {
         const { game } = await startClassicGame(p, "hard");
-        await age(game.id, 60 * 60_000);
-        await completeGame(p, game.id, { ...solution(game), elapsedSeconds: seconds });
+        await age(game.id, seconds * 1000);
+        await completeGame(p, game.id, solution(game));
       }
     }
     const pages: string[] = [];
@@ -294,11 +297,12 @@ describe("leaderboards", () => {
         leaderboardQuerySchema.parse({ scope: "global", mode: "classic", difficulty: "hard", limit: 3, cursor }),
         players[2].id,
       );
-      pages.push(...page.entries.map((e) => `${e.rank}:${e.timeMs}`));
+      // Whole seconds: the server clock adds a few ms between aging and completion.
+      pages.push(...page.entries.map((e) => `${e.rank}:${Math.floor(e.timeMs / 1000)}`));
       if (page.you) expect(page.you.rank).toBe(3);
       cursor = page.nextCursor ?? undefined;
     } while (cursor);
-    expect(pages).toEqual(players.map((_, k) => `${k + 1}:${(600 + k * 10) * 1000}`));
+    expect(pages).toEqual(players.map((_, k) => `${k + 1}:${600 + k * 10}`));
   });
 
   it("rejects malformed cursors", async () => {

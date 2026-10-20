@@ -1,4 +1,4 @@
-import { CELLS, PEERS, ALL_UNITS } from "./board";
+import { CELLS, ALL_UNITS } from "./board";
 import type { Grid } from "./types";
 
 /** Indices of cells whose value duplicates a peer's value. */
@@ -19,13 +19,6 @@ export function findConflicts(grid: ArrayLike<number>): Set<number> {
     }
   }
   return conflicts;
-}
-
-export function hasConflict(grid: ArrayLike<number>, i: number): boolean {
-  const v = grid[i];
-  if (v === 0) return false;
-  for (const p of PEERS[i]) if (grid[p] === v) return true;
-  return false;
 }
 
 /** True when the grid has no duplicate values in any row, column or box. */

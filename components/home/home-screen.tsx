@@ -24,8 +24,8 @@ import { MiniBoard } from "./mini-board";
 import { useAccount } from "@/components/providers/account-provider";
 import { useOnline } from "@/hooks/use-online";
 import { useStandalone } from "@/hooks/use-standalone";
-import { latestUnfinished, type LocalGame } from "@/lib/local/db";
-import { startClassic } from "@/lib/client/start";
+import { getLocalGame, latestUnfinished, type LocalGame } from "@/lib/local/db";
+import { adoptServerGame, startClassic } from "@/lib/client/start";
 import { api } from "@/lib/client/api";
 import type { DailyStatus } from "@/lib/daily/types";
 import { DIFFICULTIES, DIFFICULTY_LABEL, type Difficulty } from "@/lib/sudoku/types";
@@ -66,7 +66,7 @@ export function HomeScreen() {
   const router = useRouter();
   const online = useOnline();
   const standalone = useStandalone();
-  const { account, pending } = useAccount();
+  const { account, pending, ensureAccount } = useAccount();
   const [difficulty, setDifficulty] = useDifficulty();
   const [resume, setResume] = useState<LocalGame | null | undefined>(undefined);
   const [daily, setDaily] = useState<DailyStatus | null>(null);
@@ -74,13 +74,22 @@ export function HomeScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    latestUnfinished(account?.id ?? null)
-      .then((g) => !cancelled && setResume(g ?? null))
+    (async () => {
+      const local = await latestUnfinished(account?.id ?? null).catch(() => undefined);
+      if (local || !account || !online) return local ?? null;
+      // Nothing on this device (another device, or guest games just moved to
+      // a new account): continue the newest unfinished game from the server.
+      const { games } = await api.listGames("active");
+      if (!games[0]) return null;
+      const { game } = await api.getGame(games[0].id);
+      return (await getLocalGame(await adoptServerGame(game, account.id))) ?? null;
+    })()
+      .then((g) => !cancelled && setResume(g))
       .catch(() => !cancelled && setResume(null));
     return () => {
       cancelled = true;
     };
-  }, [account?.id]);
+  }, [account, online]);
 
   useEffect(() => {
     if (!online || pending) return;
@@ -97,7 +106,8 @@ export function HomeScreen() {
   const newGame = async () => {
     setBusy(true);
     try {
-      const started = await startClassic(difficulty, account?.id ?? null);
+      const owner = await ensureAccount();
+      const started = await startClassic(difficulty, owner?.id ?? null);
       if (started.offline) toast("You're offline — this game stays on this device.");
       else if (started.fallbackReason) toast("Puzzle service unavailable — using a verified generated puzzle.");
       router.push(`/play?id=${encodeURIComponent(started.id)}`);
