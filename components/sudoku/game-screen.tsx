@@ -90,16 +90,15 @@ export function GameScreen({ game }: { game: LocalGame }) {
     [hint],
   );
 
-  const onDigit = useCallback(
-    (d: number) => {
-      if (state.selected === null) {
-        setAnnouncement("Select a cell first.");
-        return;
-      }
-      actions.input(d);
+  /** Runs a digit action on the selected cell, or asks the player to pick one. */
+  const withCell = useCallback(
+    (act: (d: number) => void) => (d: number) => {
+      if (state.selected === null) setAnnouncement("Select a cell first.");
+      else act(d);
     },
-    [actions, state.selected],
+    [state.selected],
   );
+  const onDigit = withCell(actions.input);
 
   // Keyboard: digits, arrows, erase, notes, undo/redo, pause.
   useEffect(() => {
@@ -287,7 +286,10 @@ export function GameScreen({ game }: { game: LocalGame }) {
             onToggleNotes={actions.toggleNotes}
             onHint={() => void runHint()}
           />
-          <NumberPad counts={counts} notesMode={state.notesMode} disabled={!playing} onDigit={onDigit} />
+          <NumberPad kind="value" counts={counts} disabled={!playing} onDigit={withCell(actions.place)} />
+          {state.notesMode && (
+            <NumberPad kind="note" counts={counts} disabled={!playing} onDigit={withCell(actions.note)} />
+          )}
           {completed && !completionOpen && (
             <Button variant="secondary" className="h-11 rounded-xl" onClick={() => setCompletionOpen(true)}>
               <Trophy className="size-4" /> View result

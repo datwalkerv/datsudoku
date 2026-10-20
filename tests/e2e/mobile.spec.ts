@@ -11,7 +11,18 @@ test("plays by touch on an iPhone-sized screen", async ({ page }) => {
   await page.getByRole("button", { name: new RegExp(`^Number ${value}`) }).tap();
   await expect(page.locator(`[data-cell="${cell}"]`)).toHaveAttribute("aria-label", new RegExp(`, ${value}$`));
 
-  // Board and number pad fit the viewport without scrolling.
+  // Notes opens a second row: it adds notes, while the main row still places numbers.
+  const next = givens.indexOf("0", cell + 1);
+  await page.locator(`[data-cell="${next}"]`).tap();
+  await page.getByRole("button", { name: "Notes" }).tap();
+  await page.getByRole("button", { name: "Note 3", exact: true }).tap();
+  await page.getByRole("button", { name: "Note 5", exact: true }).tap();
+  await expect(page.locator(`[data-cell="${next}"]`)).toHaveAttribute("aria-label", /notes 3 5$/);
+  const nextValue = solutionFor(givens)[next];
+  await page.getByRole("button", { name: new RegExp(`^Number ${nextValue}`) }).tap();
+  await expect(page.locator(`[data-cell="${next}"]`)).toHaveAttribute("aria-label", new RegExp(`, ${nextValue}$`));
+
+  // Board and both pad rows fit the viewport without scrolling.
   const pad = await page.getByRole("group", { name: "Enter number" }).boundingBox();
   const viewport = page.viewportSize()!;
   expect(pad!.y + pad!.height).toBeLessThanOrEqual(viewport.height);

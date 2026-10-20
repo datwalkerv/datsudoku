@@ -168,7 +168,9 @@ export function useGame(initial: LocalGame) {
       select: (i: number | null) => setState((s) => engine.select(s, i)),
       move: (dir: engine.Direction) => setState((s) => engine.select(s, engine.moveSelection(s.selected, dir))),
       input: (d: number) => apply((s) => engine.input(s, d, opts())),
-      /** Shift/Alt + digit: enter as a note regardless of mode. */
+      /** Number pad: always a value, even while the notes row is open. */
+      place: (d: number) => apply((s) => engine.setValue(s, d, opts())),
+      /** Notes row, or Shift/Alt + digit: always a note. */
       note: (d: number) => apply((s) => engine.toggleNote(s, d)),
       erase: () => apply((s) => engine.erase(s)),
       undo: () => apply(engine.undo),
